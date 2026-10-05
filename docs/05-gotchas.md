@@ -1,0 +1,279 @@
+# 坑清单
+
+全部是我们在 Redmi Note 11T Pro+ 上**实际踩过**的坑。按"杀伤力"排序。
+
+---
+
+## 1. 🔴 ESP 是空的 —— 开机找不到可引导设备
+
+**症状**
+```
+BdsDxe: No bootable option or device was found.
+```
+或者卡在 UEFI 界面 / 直接跳进 UEFI Shell。
+
+**原因**
+用 Dism++ 之类的工具释放映像时，**ESP 分区不会被写引导**。刚格式化完的 ESP 里只有：
+
+```
+EFI\Boot\BOOTAA64.EFI                     MISSING
+EFI\Microsoft\Boot\bootmgfw.efi           MISSING
+EFI\Microsoft\Boot\BCD                    MISSING
+```
+
+**解决**
+```powershell
+bcdboot G:\Windows /s S: /f UEFI /v
+```
+x64 的 `bcdboot` **可以**给 ARM64 映像写引导，会自动挑 `bootaa64.efi`。
+写完核对 `bootmgfw.efi` 的 PE machine 必须是 **`0xAA64`**。
+
+详见 [03-windows-vm.md](03-windows-vm.md) 第 2.3 节。
+
+---
+
+## 2. 🔴 VNC 端口不是你以为的那个
+
+**症状**
+`adb forward tcp:5900 tcp:5900` 之后，VNC 客户端连不上 / 连上了是黑屏。
+但**有时候又能连** —— 行为飘忽。
+
+**原因（两层）**
+
+1. `-vnc 127.0.0.1:N` 里 **`N` 是 display 号，不是端口号**，端口 = `5900 + N`
+   → 写成 `-vnc 127.0.0.1:5900` 实际监听 **11800** ✗（不是 5900）
+2. **端口被占时 QEMU 不报错**，而是**静默把 display 号 +1**
+   → 你以为它在 5900，其实跑到了 **5901** ✗
+
+**解决**
+
+```bash
+# 正确写法：:0 → 端口 5900
+-vnc 127.0.0.1:0,lossy=on
+```
+
+**并且**启动前要等端口真的空闲、启动后要核对实际端口：
+
+```bash
+# 启动前
+for i in $(seq 1 30); do
+    netstat -tln | grep -q ":5900 " || break
+    sleep 1
+done
+
+# 启动后
+netstat -tlnp | grep qemu        # 必须显示 127.0.0.1:5900
+```
+
+`scripts/boot-win.sh` 已经把这两件事都做了，并且**核对失败会直接退出**。
+
+---
+
+## 3. 🔴 `-cpu host` 在 big.LITTLE 上随机失败
+
+**症状**
+```
+qemu-system-aarch64: Failed to put registers after init: Invalid argument
+```
+同一命令连跑 5 次，有时候成功有时候失败。
+
+**原因**
+`-cpu host` 枚举的是 **QEMU 当前所在 CPU** 的特性。MTK 是 4×A78 + 4×A55，
+写 vCPU 寄存器期间如果被调度器在 A55/A78 之间迁移 → `EINVAL`。
+
+**实测数据**
+
+| 条件 | 成功率 |
+|---|---|
+| 不绑核 | **2/5** ✗ |
+| `taskset 1`（cpu0，A55） | **3/3** ✓ |
+| `taskset 80`（cpu7，A78） | **3/3** ✓ |
+| `taskset f0`（cpu4-7，A78 簇） | **3/3** ✓ |
+
+**解决**
+```bash
+taskset f0 qemu-system-aarch64 ...
+```
+
+> 各种 `-cpu` 变体（`host,pmu=off`、`host,sve=off` 等）表现**不稳定，随机性大于特性差异**，
+> 不要指望靠调特性绕过 —— **就是绑核**。
+
+---
+
+## 4. 🔴 `pkill -f` 把自己的 shell 杀掉了
+
+**症状**
+脚本执行到一半突然没了，没有任何输出，进程也没起来。
+
+**原因**
+```bash
+adb shell su -c 'pkill -f qemu-system-aarch64.real; ...'
+```
+`pkill -f` 匹配的是**完整命令行**，而**外层 `su -c` 的命令行里就含有这个字符串** →
+**把自己的 shell 也杀了**。
+
+**解决**
+用**短进程名**匹配（`pkill` 默认只匹配进程名，debian 上 comm 最长 15 字符）：
+
+```bash
+pkill qemu-system-aar
+```
+
+或者把 `pkill` 放进**脚本文件**里执行（脚本自身的命令行不含那个字符串）：
+
+```bash
+# scripts/stop-vm.sh
+pkill qemu-system-aar
+```
+
+---
+
+## 5. 🟠 `-device usb-tablet,bus=usb` 报总线不存在
+
+**症状**
+```
+qemu-system-aarch64: -device usb-tablet,bus=usb: Bus 'usb' not found
+```
+QEMU 直接起不来。
+
+**原因**
+`-device qemu-xhci,id=usb` 里的 `id=usb` **只是设备 id**，USB 总线名是 **`usb.0`**（`<id>.0`）。
+
+**解决**
+**去掉 `bus=`**，让它自动挂到唯一的 USB 控制器上（最省事）：
+
+```bash
+-device qemu-xhci,id=xhci -device usb-tablet -device usb-kbd
+```
+
+---
+
+## 6. 🟠 挂 Windows 安装 ISO 会抢引导
+
+**症状**
+明明装了系统，开机却进了 Windows 安装程序。
+
+**原因**
+Windows 安装 ISO 是**可引导的**（El Torito + `EFI\BOOT\BOOTAA64.EFI`），
+UEFI 可能优先选它。
+
+**解决**
+- 装完系统后**别挂** Windows 安装 ISO
+- 要挂光盘就挂 **`virtio-win.iso`** —— 它是**纯数据盘**（`genisoimage` 生成的 ISO9660，无 El Torito、无 EFI 目录），**挂上去安全**
+
+---
+
+## 7. 🟠 `adb push` 到 `/data/media/0/` 权限拒绝
+
+**症状**
+```
+adb: error: stat failed when trying to push to /data/media/0/DroidVM/win.vhdx: Permission denied
+```
+
+**原因**
+`/data/media/0` 是 root 专属目录，adb 的 shell 用户写不进去。
+
+**解决**
+先推到 shell 能写的地方，再 `su` 搬过去（**同一文件系统内是秒级 rename**）：
+
+```bash
+adb push win.vhdx /data/local/tmp/win.vhdx
+adb shell su -c 'mv /data/local/tmp/win.vhdx /data/media/0/DroidVM/'
+```
+
+> 顺带一提：`/storage/emulated/0/...` 是 **FUSE 挂载**，`/data/media/0/...` 是**原生路径**，指向同一个文件。
+> QEMU 用原生路径可以绕过 FUSE 层。（实测读速率两者都是 ~950 MB/s，差别不大，但原生更稳。）
+
+---
+
+## 8. 🟠 虚拟机里时间变成 2768 年
+
+**症状**
+Windows 任务栏显示 `2768/12/24`。
+
+**原因**
+QEMU 侧 RTC 初值读取有偏差（**+742 年**）。
+但 **PL031 RTC 是 32 位秒计数器，物理上最多只能表示到 2106 年** ——
+所以**不可能是 RTC 给出的值**，是 QEMU 构建的转换 bug。
+
+**解决**
+**有网之后 Windows NTP 会自动纠正**（这也顺带证明了网络是通的）。
+想手动改：
+
+```powershell
+# Windows 里，管理员 PowerShell
+Stop-Service w32time; Set-Service w32time -StartupType Disabled
+Set-Date -Date "2026-10-06 03:20:00"
+```
+
+或者右键任务栏时间 → 调整日期和时间 → 关掉「自动设置时间」→ 手动改。
+
+---
+
+## 9. 🟠 DroidVM 会重写 `vms.json`
+
+**症状**
+手改了 `vms.json`（比如换磁盘路径），结果 VM 在应用里**消失了**，提示"当前版本读取不了"。
+
+**原因**
+DroidVM 用自己严格的 schema 校验，**不认识手加的字段**，就把它剔除。
+
+**解决**
+- **只改它已有的字段**（比如 `disks[].path`、`screens.*.exporter`），**不要新增字段**
+- 改完保留原属主和权限：
+  ```bash
+  OWN=$(stat -c %u vms.json); GRP=$(stat -c %g vms.json); MODE=$(stat -c %a vms.json)
+  # ... 改 ...
+  chown $OWN:$GRP vms.json; chmod $MODE vms.json
+  ```
+- **改之前先备份** `cp vms.json vms.json.bak`
+- 更稳妥的做法：**用项目自带的 `boot-win.sh` 直接从命令行启动**，完全绕开 DroidVM 的配置管理
+
+---
+
+## 10. 🟡 `virtio-gpu-rutabaga-pci` 直接崩溃
+
+**症状**
+```
+exit=139      # SIGSEGV
+```
+QEMU 秒崩，没有任何输出。
+
+**原因**
+`virtio-gpu-rutabaga-pci`（走 gfxstream 的那套）+ `-display egl-headless` 在这个构建上段错误。
+顺带一提，`virtio-gpu-gl-pci` + `-display none` 也会报
+`The display backend does not have OpenGL support enabled`。
+
+**解决**
+- 正常显示用 **`virtio-gpu-pci`**（Windows 走 `viogpudo`）
+- 要跑 **virgl**（Linux 客机才有意义）用 **`virtio-gpu-gl-pci` + `-display egl-headless`**（实测能初始化成功）
+- **别用 rutabaga**
+
+---
+
+## 附：几个"看起来像坑其实不是"的事
+
+| 现象 | 真相 |
+|---|---|
+| `warning: nic virtio-net-pci.0 has no peer` | 网卡没挂后端（少了 `-netdev user,id=n0`）。只是警告，**但网络是不通的** |
+| AAVMF 启动时先卡几十秒 | 内置默认引导项 `Boot0002 "UEFI Misc Device"` 会先超时，属正常 |
+| 首次开机画面短暂变黑 | Windows 在重启/切换显示模式。**重连 VNC 即可**，进度不会丢（写在盘上） |
+| `Trusted root check: skipped` | 离线验签跳过信任根比对，**只能实机启动才算**（不是失败） |
+| `/dev/kvm` 报 `Invalid argument` | 这是**正常**的！说明 `open()` 已经过了 SELinux（Enforcing），只是没传参数 |
+| QEMU 报找不到 `libbinder_ndk.so` | DroidVM 的 QEMU 需要 `export LD_LIBRARY_PATH=/system/lib64` |
+
+---
+
+## 排错顺序建议
+
+遇到"启动不了"，按这个顺序查：
+
+```
+1. adb shell su -c 'ls -l /dev/kvm'                    ← KVM 在不在（前置条件）
+2. adb shell su -c 'cat /data/local/tmp/boot.out'      ← 启动脚本的输出（含端口核对）
+3. adb shell su -c 'cat /data/local/tmp/win-qemu.log'  ← QEMU 自己的报错
+4. adb shell su -c 'cat /data/local/tmp/win-serial.log'← 固件串口输出（BdsDxe 之类）
+5. python scripts/vncgrab.py                           ← 抓一帧看画面到哪一步
+6. adb shell su -c 'dd if=/dev/block/by-name/expdb of=/data/local/tmp/e.img bs=1M'
+   adb pull /data/local/tmp/e.img && grep -a "\[SBC\] image" e.img   ← ATF 校验链
+```
