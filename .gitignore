@@ -1,0 +1,10 @@
+*.log
+*.tmp
+*.vhd
+*.vhdx
+*.qcow2
+*.iso
+*.fd
+*.img
+__pycache__/
+conversation.md
