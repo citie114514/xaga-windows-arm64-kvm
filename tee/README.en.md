@@ -153,6 +153,61 @@ adb shell 'keystore_cli_v2 delete --name=t'
 
 ---
 
+## 🔬 Extra verification you can do before flashing: isomorphism check
+
+Real-hardware testing is the final word, but there is a no-flash check that rules out a
+whole class of problems.
+
+**The idea**: a sound NoGZ patch changes its base `tee_a` in a **patterned** way — the changes
+land on the patch points defined in the profile (ATF `getter`/`callback`/`pc_patch`, …), and
+the rest of the diff is just signing. So take a patch **already verified on real hardware** as
+a reference and compare whether the two "diff-against-their-own-base" region sets are
+**isomorphic**:
+
+```bash
+python tools/verify-patch-diff.py \
+  --base-a  backup/tee_a.img \
+  --patch-a tee/tee_nogz_rk_5M.img \
+  --base-b  backup/tee_a_NEWROM_a91f5de.img \
+  --patch-b tee/tee_nogz_shuilanA15_5M.img
+```
+
+Actual output from this project:
+
+```
+  Region count identical : ✅ yes  (175 vs 175)
+  Total bytes identical  : ✅ yes  (2953488 vs 2953488)
+  Length sequence same   : ✅ yes
+
+  ✅ Conclusion: the patch under test is isomorphic to the reference — same patch pipeline,
+     nothing went off the rails.
+```
+
+**→ Both patches came out of the same build pipeline with no deviation.** This **cannot replace
+real-hardware testing**, but it rules out "the build went wrong" / "the profile offsets are
+miscalculated" classes of problems.
+
+---
+
+## ⚠️ Never keep patches for different bases in one directory
+
+We actually hit this: **a patch for the wrong base was flashed because the filename was
+misleading, and the device stopped at the second boot screen** ✗
+
+```
+/data/local/tmp/tee_patched.img     <- wrong base ✗ yet the name looks like "the one to flash"
+/data/local/tmp/tee_nogz_new.img    <- the correct patch for this device ✓ with an opaque name
+```
+
+**→ Rule: the filename must state which base it targets and whether it is safe for this
+specific device** ✓ e.g. `FLASH_THIS_shuilan_patch_for_this_phone.img` /
+`DO_NOT_FLASH_rk_patch_wrong_base.img` ✓
+
+Put bluntly: **do not leave patches for several bases on the same device** ✗. If you must,
+write a `TEE_README.txt` next to them saying which one is safe.
+
+---
+
 ## ⚠️ The core rule: a patch is bound to one `tee` base
 
 The NoGZ patch modifies the **boot handover logic of the `atf` member** inside the `tee`

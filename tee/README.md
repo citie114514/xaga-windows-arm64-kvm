@@ -150,6 +150,56 @@ adb shell 'keystore_cli_v2 delete --name=t'
 
 ---
 
+## 🔬 刷之前可以做的额外验证：同构比对
+
+实机验证是最终标准，但有一个**不刷机**就能排掉一大类问题的方法。
+
+**思路**：一个可靠的 NoGZ 补丁，相对它基座 `tee_a` 的改动是**模式化**的 ——
+改动集中在 profile 定义的那几个补丁点（ATF 的 getter/callback/pc_patch 等），
+其余差异只是签名带来的。所以拿一个**已经实机验证可用的补丁**作参照，
+比较两者「与各自基座的差异区间」是不是**同构**：
+
+```bash
+python tools/verify-patch-diff.py \
+  --base-a  backup/tee_a.img \
+  --patch-a tee/tee_nogz_rk_5M.img \
+  --base-b  backup/tee_a_NEWROM_a91f5de.img \
+  --patch-b tee/tee_nogz_shuilanA15_5M.img
+```
+
+本项目的实测输出：
+
+```
+  区间数量一致 : ✅ 是  (175 vs 175)
+  总字节一致   : ✅ 是  (2953488 vs 2953488)
+  长度序列一致 : ✅ 是
+
+  ✅ 结论：待验证补丁与参照补丁同构 —— 走的是同一套补丁流程，没有走样。
+```
+
+**→ 说明两个补丁用的是同一套构建流程，没有走样。**
+这**不能替代实机验证**，但能排掉「构建过程出错 / profile 偏移算错」这一类问题。
+
+---
+
+## ⚠️ 千万别把不同基座的补丁混在一个目录里
+
+实测踩过一次：**因为文件名认错，把别的基座的补丁刷了进去，直接卡二** ✗
+
+```
+/data/local/tmp/tee_patched.img     ← 别的基座的补丁 ✗ 但名字最像"该刷的那个"
+/data/local/tmp/tee_nogz_new.img    ← 本机该刷的补丁 ✓ 名字却看不懂
+```
+
+**→ 规则：补丁文件名里必须写清「适配哪种基座 / 能不能给这台刷」** ✓
+例如 `FLASH_THIS_shuilan_patch_for_this_phone.img` /
+`DO_NOT_FLASH_rk_patch_wrong_base.img` ✓
+
+说得更直白一点：**同一台设备上不要同时放多个基座的补丁** ✗。
+真放了，至少写一份 `TEE_README.txt` 在旁边说清楚哪个能刷。
+
+---
+
 ## ⚠️ 核心规律：补丁**绑死的是 `tee` 基座**
 
 NoGZ 补丁改的是 `tee` 分区里 **`atf` 成员的启动交接逻辑**，所以它只对
