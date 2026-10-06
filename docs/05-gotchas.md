@@ -440,6 +440,72 @@ ATF 校验（[SBC] image atf header auth pass）
 
 ---
 
+## 13. 🔴 宿主的 `bcdboot` 写不了引导：它要 `EFI_EX`，而老镜像里没有
+
+**症状**
+在**开了 Secure Boot 且装了 2023 PCA** 的 Windows 主机上，给 Win10 LTSC 2021 这类
+**较老的 ARM64 镜像**写引导，`bcdboot` 直接失败：
+
+```
+BFSVC: Using Ex bins because SB is on, BFSVC_USE_EX_BINS is set, and 2023 PCA is in DB.
+BFSVC: Using source OS version a00004a610001
+BFSVC: Unable to open file G:\Windows\boot\EFI_EX\bootmgfw_EX.efi for read because the file or path does not exist
+BFSVC Error: Failed to validate boot manager checksum (G:\Windows\boot\EFI_EX\bootmgfw_EX.efi)! Error code = 0xc1
+BFSVC Error: ServicingBootFiles failed. Error = 0xc1
+Failure when attempting to copy boot files.
+```
+
+**原因**
+宿主 `bcdboot` 根据**宿主自己的** Secure Boot 状态决定使用「Ex bins」
+（带 2023 PCA 的引导管理器 ✓）。而 `EFI_EX\` 目录是较新 Windows 才有的 ✗ ——
+**Win10 LTSC 2021 镜像里根本不存在** ✗ → 拷贝失败。
+
+> 这与 [docs/03](03-windows-vm.md) 里「x64 的 bcdboot 能给 ARM64 写引导」并不矛盾 ——
+> 那条在**宿主没开 SB / 没有 2023 PCA** 时成立 ✓，这里是被宿主策略堵住了 ✗。
+
+**解决：绕开 bcdboot，手工布置（完全可控）**
+
+```powershell
+# 管理员 PowerShell； $E = ESP 盘符（如 V:）， $W = Windows 分区盘符（如 G:）
+New-Item -ItemType Directory -Force -Path "$E\EFI\Boot"           | Out-Null
+New-Item -ItemType Directory -Force -Path "$E\EFI\Microsoft\Boot" | Out-Null
+
+# 直接拷镜像自带的 ARM64 引导管理器
+Copy-Item "$W\Windows\boot\EFI\bootmgfw.efi" "$E\EFI\Microsoft\Boot\bootmgfw.efi" -Force
+Copy-Item "$W\Windows\boot\EFI\bootmgfw.efi" "$E\EFI\Boot\bootaa64.efi" -Force   # 兜底路径
+Copy-Item "$W\Windows\boot\EFI\boot.stl"     "$E\EFI\Microsoft\Boot\boot.stl" -Force
+
+# 手工建 BCD（createstore 后先建 osloader，再建 bootmgr）
+$BCD = "$E\EFI\Microsoft\Boot\BCD"
+Remove-Item $BCD -Force -ErrorAction SilentlyContinue
+bcdedit /createstore $BCD
+$g = (bcdedit /store $BCD /create /d "Windows 10 ARM64" /application osloader | Select-String '\{[0-9a-fA-F-]+\}').Matches[0].Value
+bcdedit /store $BCD /set "$g" device     "partition=$W"
+bcdedit /store $BCD /set "$g" path       "\Windows\system32\winload.efi"
+bcdedit /store $BCD /set "$g" osdevice   "partition=$W"
+bcdedit /store $BCD /set "$g" systemroot "\Windows"
+bcdedit /store $BCD /create "{bootmgr}" /d "Windows Boot Manager"      # ← 不要加 /application！
+bcdedit /store $BCD /set "{bootmgr}" device       "partition=$E"
+bcdedit /store $BCD /set "{bootmgr}" path         "\EFI\Microsoft\Boot\bootmgfw.efi"
+bcdedit /store $BCD /set "{bootmgr}" default      "$g"
+bcdedit /store $BCD /set "{bootmgr}" displayorder "$g"
+bcdedit /store $BCD /set "{bootmgr}" timeout      5
+```
+
+**三个坑中坑**：
+
+1. **`/application bootmgr` 是错语法** ✗ —— 合法类型只有 `osloader` / `resume` / `startup` /
+   `bootsector` / `fwbootmgr` 等 ✗。建引导管理器必须写 **`/create {bootmgr} /d "..."`** ✓
+   （报错为 `The application type switch specified is not valid.`）
+2. **写 ESP 上的 BCD 需要管理员** ✗ —— 非提权会报 `The boot configuration data store could not be opened. Access is denied.`
+3. **拷引导文件前先确认架构** ✓ —— `bootmgfw.efi` 的 PE machine 必须是 **`0xAA64`**；
+   千万别从宿主的 `C:\Windows\boot\EFI\` 拿（那是 x64 的 ✗）
+
+**副产品**：镜像自带的 `boot\EFI\` 里还有 `zh-CN\*.mui`（启动菜单的中文界面）、
+`memtest.efi`、`winsipolicy.p7b` —— 一并拷过去更完整 ✓。
+
+---
+
 ## 附：几个"看起来像坑其实不是"的事
 
 | 现象 | 真相 |
