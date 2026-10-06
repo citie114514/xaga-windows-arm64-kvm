@@ -1,6 +1,6 @@
 # 使用方法
 
-[**中文**](../04-usage.md) | [English](../en/04-usage.md) | [日本語](../ja/04-usage.md) | [Русский](../ru/04-usage.md)
+[**中文**](04-usage.md) | [English](en/04-usage.md) | [日本語](ja/04-usage.md) | [Русский](ru/04-usage.md)
 
 本篇讲：**怎么启动**、**每个 QEMU 参数是什么意思**、**怎么看画面**、**网络怎么通**、**怎么调性能**。
 

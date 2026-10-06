@@ -335,4 +335,4 @@ dd в tee_a  ->  чтение обратно и сверка sha256  ->  пер�
 
 (Кроме того, у самого `sign_mtk_cert.py` нет аргумента `--all`, поэтому эта функция должна просто возвращать `[]`.)
 
-Исправление — в [issues/tee-nogz-1-sign-all-flag.md](../issues/tee-nogz-1-sign-all-flag.md).
+Исправление — в [issues/tee-nogz-1-sign-all-flag.md](../../issues/tee-nogz-1-sign-all-flag.md).

@@ -1,6 +1,6 @@
 # 进阶路线：主线 Linux + KDE
 
-[**中文**](../06-mainline.md) | [English](../en/06-mainline.md) | [日本語](../ja/06-mainline.md) | [Русский](../ru/06-mainline.md)
+[**中文**](06-mainline.md) | [English](en/06-mainline.md) | [日本語](ja/06-mainline.md) | [Русский](ru/06-mainline.md)
 
 > 如果你不满足于在 Android 里跑虚拟机，而是想把手机直接变成一台 Linux 电脑
 > —— 和 [kde-yyds](https://space.bilibili.com/2008726064) 那个视频一样。

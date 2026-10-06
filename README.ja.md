@@ -43,9 +43,9 @@ ATF の差し替えは**起動チェーンの改変**です。本プロジェク
 | あなたの状況 | おすすめ |
 |---|---|
 | **Android のまま**、Windows / ARM Linux の VM を動かしたいだけ | ✅ **まさに本プロジェクト** —— [クイックスタート](#クイックスタート)へ |
-| **メインライン Linux + KDE** をやりたい（[kde-yyds](https://space.bilibili.com/2008726064) の動画と同じ） | [docs/06-mainline.md](docs/06-mainline.md) を参照 |
+| **メインライン Linux + KDE** をやりたい（[kde-yyds](https://space.bilibili.com/2008726064) の動画と同じ） | [docs/ja/06-mainline.md](docs/ja/06-mainline.md) を参照 |
 | root が無い | ❌ 本プロジェクトでは無理です（TCG は対象外） |
-| MT6895 以外のデバイス | ⚠️ 原理は共通ですが、`tee` パッチは各機種の TEE/LK の組み合わせが必要です（[docs/02](docs/02-build-and-sign.md)） |
+| MT6895 以外のデバイス | ⚠️ 原理は共通ですが、`tee` パッチは各機種の TEE/LK の組み合わせが必要です（[docs/02](docs/ja/02-build-and-sign.md)） |
 
 ---
 
@@ -67,7 +67,7 @@ graph LR
 **なぜ署名が必須なのか**：実機で `sbc_en = 1` を確認済み（Secure Boot が有効。値は eFuse OTP 由来で変更不可）。
 起動のたびに ATF の証明書チェーンが検証されるため、改変した ATF は
 **[pwnage24mtk](https://github.com/kasnria001/pwnage24mtk) の証明書パース脆弱性を使って署名**しないと
-受け入れられません。詳細は [docs/01](docs/01-enable-kvm.md) と [docs/02](docs/02-build-and-sign.md)。
+受け入れられません。詳細は [docs/01](docs/ja/01-enable-kvm.md) と [docs/02](docs/ja/02-build-and-sign.md)。
 
 ---
 
@@ -160,7 +160,7 @@ adb shell su -c 'cat /proc/misc | grep kvm'
 >
 > 見分け方：**2 回目の画面 + adb にデバイスが見える = 正常、待つ** ✓；
 > **1 回目の画面で止まる、またはブラックアウト後に fastboot へ落ちる = 本当の失敗** ✗。
-> 詳細は [docs/05](docs/05-gotchas.md) の第 12 項。
+> 詳細は [docs/05](docs/ja/05-gotchas.md) の第 12 項。
 
 ### ステップ 2：Windows 11 ARM64 のディスクを作る（ワンクリックスクリプト）
 
@@ -216,12 +216,12 @@ adb forward tcp:5900 tcp:5900                    # VNC は 5900 に固定
 |---|---|
 | [README.en.md](README.en.md) | 英語版 README |
 | [README.ru.md](README.ru.md) | ロシア語版 README |
-| [docs/01-enable-kvm.md](docs/01-enable-kvm.md) | **KVM 有効化の全手順**：原理、検証チェーンの解析、書き込みと確認 |
-| [docs/02-build-and-sign.md](docs/02-build-and-sign.md) | **ビルドと署名の詳細**：NoGZ パッチが何を変えるか、pwnage での署名、サイズ超過の扱い |
-| [docs/03-windows-vm.md](docs/03-windows-vm.md) | Windows 11 ARM64 のディスク：イメージ展開、ブートファイル、TPM 回避、ドライバ注入 |
-| [docs/04-usage.md](docs/04-usage.md) | **使い方**：QEMU の各オプション解説、VNC、ネットワーク、性能チューニング |
-| [docs/05-gotchas.md](docs/05-gotchas.md) | **落とし穴リスト**（12 項目、すべて実際に踏んだもの） |
-| [docs/06-mainline.md](docs/06-mainline.md) | 発展編：メインライン Linux + KDE への道 |
+| [docs/ja/01-enable-kvm.md](docs/ja/01-enable-kvm.md) | **KVM 有効化の全手順**：原理、検証チェーンの解析、書き込みと確認 |
+| [docs/ja/02-build-and-sign.md](docs/ja/02-build-and-sign.md) | **ビルドと署名の詳細**：NoGZ パッチが何を変えるか、pwnage での署名、サイズ超過の扱い |
+| [docs/ja/03-windows-vm.md](docs/ja/03-windows-vm.md) | Windows 11 ARM64 のディスク：イメージ展開、ブートファイル、TPM 回避、ドライバ注入 |
+| [docs/ja/04-usage.md](docs/ja/04-usage.md) | **使い方**：QEMU の各オプション解説、VNC、ネットワーク、性能チューニング |
+| [docs/ja/05-gotchas.md](docs/ja/05-gotchas.md) | **落とし穴リスト**（12 項目、すべて実際に踏んだもの） |
+| [docs/ja/06-mainline.md](docs/ja/06-mainline.md) | 発展編：メインライン Linux + KDE への道 |
 | [tee/](tee/) | **完成済み `tee` イメージ**（署名済み、直接書き込み可）+ 対応ベース一覧 |
 | [profiles/](profiles/) | ファームウェアプロファイル（ATF/LK のオフセット定義） |
 | [tools/](tools/) | 新しいファームウェア向けにオフセットを再特定するリバースエンジニアリングツール |
@@ -256,13 +256,13 @@ adb forward tcp:5900 tcp:5900                    # VNC は 5900 に固定
 > **効きません。これは構造上の制約です。** virtio-win の `viogpudo` は表示ドライバであり
 > **3D 機能はありません**。Windows 用の virgl ドライバも存在しません（あれは Linux 用です）。
 > したがって Windows ゲストは常にソフトウェアレンダリングです。
-> GPU 加速された VM が欲しければ [メインライン Linux 経路](docs/06-mainline.md) + Linux ゲストになります。
+> GPU 加速された VM が欲しければ [メインライン Linux 経路](docs/ja/06-mainline.md) + Linux ゲストになります。
 
 **Q: 動作が重いのですが**
 > 主に**表示経路**の問題です。`-vnc ...,lossy=on` を付けると 1 フレームあたりのデータ量が
 > 3.0 MB から **0.36 MB（1/8.3）** に減ります。また adb 転送トンネルは実測 **276 MB/s** あるので、
 > ネットワーク自体はボトルネックではありません —— そこを弄っても無駄です。
-> 詳細は [docs/04](docs/04-usage.md)。
+> 詳細は [docs/04](docs/ja/04-usage.md)。
 
 **Q: root 無しでできますか？**
 > できません。root が無ければ `tee_a` を変更できず、KVM も得られません。上の警告を参照。

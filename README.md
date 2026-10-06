@@ -204,6 +204,8 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | [docs/04-usage.md](docs/04-usage.md) | **使用方法**：QEMU 参数逐条说明、VNC、网络、性能调优 （[英](docs/en/04-usage.md) / [日](docs/ja/04-usage.md) / [俄](docs/ru/04-usage.md)）|
 | [docs/05-gotchas.md](docs/05-gotchas.md) | **坑清单**（12 条，全是我们踩过的）| （[英](docs/en/05-gotchas.md) / [日](docs/ja/05-gotchas.md) / [俄](docs/ru/05-gotchas.md)）|
 | [docs/06-mainline.md](docs/06-mainline.md) | 进阶：换主线 Linux + KDE 的路线 （[英](docs/en/06-mainline.md) / [日](docs/ja/06-mainline.md) / [俄](docs/ru/06-mainline.md)）|
+| [docs/appendix-atf-reverse.md](docs/appendix-atf-reverse.md) | **附录：preloader 逆向结论**（SBC 来自 eFuse、两段式 `[SBC]` 校验链、ATF 装载点）（[英](docs/en/appendix-atf-reverse.md) / [日](docs/ja/appendix-atf-reverse.md) / [俄](docs/ru/appendix-atf-reverse.md)）|
+| [docs/appendix-early-report.md](docs/appendix-early-report.md) | **附录：早期可行性报告**（只读侦察、逆向出的偏移、风险）（[英](docs/en/appendix-early-report.md) / [日](docs/ja/appendix-early-report.md) / [俄](docs/ru/appendix-early-report.md)）|
 | [tee/](tee/) | **成品 tee 镜像**（已签名，可直接刷）+ 适配基座对照表 |
 | [profiles/](profiles/) | 固件 profile（ATF/LK 偏移定义）|
 | [tools/](tools/) | 为新固件重新定位 profile 的逆向工具 |

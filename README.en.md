@@ -29,8 +29,8 @@ graph LR
 value comes from eFuse OTP — it cannot be changed), so every boot walks the ATF
 certificate chain. A modified ATF is therefore **only accepted if it is signed with
 [pwnage24mtk](https://github.com/kasnria001/pwnage24mtk)'s certificate-parsing
-vulnerability**. See [docs/01](docs/01-enable-kvm.md) and
-[docs/02](docs/02-build-and-sign.md) (both currently in Chinese).
+vulnerability**. See [docs/01](docs/en/01-enable-kvm.md) and
+[docs/02](docs/en/02-build-and-sign.md) (both currently in Chinese).
 
 ---
 
@@ -70,9 +70,9 @@ hardware, but you need to understand the following:
 | Your situation | Recommendation |
 |---|---|
 | **You want to stay on Android** and just run a Windows / ARM Linux VM | ✅ **This is the project** — see [Quick start](#quick-start) |
-| You want **mainline Linux + KDE** (like the [kde-yyds](https://space.bilibili.com/2008726064) video) | See [docs/06-mainline.md](docs/06-mainline.md) |
+| You want **mainline Linux + KDE** (like the [kde-yyds](https://space.bilibili.com/2008726064) video) | See [docs/en/06-mainline.md](docs/en/06-mainline.md) |
 | You do not have root | ❌ This project cannot help you (TCG is not discussed) |
-| Your device is not MT6895 | ⚠️ The idea generalizes, but the `tee` patch needs your model's TEE/LK pair (see [docs/02](docs/02-build-and-sign.md)) |
+| Your device is not MT6895 | ⚠️ The idea generalizes, but the `tee` patch needs your model's TEE/LK pair (see [docs/02](docs/en/02-build-and-sign.md)) |
 
 ---
 
@@ -163,7 +163,7 @@ adb shell su -c 'cat /proc/misc | grep kvm'
 >
 > Telling them apart: **second screen + device visible in adb = normal, wait** ✓;
 > **first screen, or a black screen falling into fastboot = real failure** ✗.
-> See [docs/05](docs/05-gotchas.md) item 12.
+> See [docs/05](docs/en/05-gotchas.md) item 12.
 
 > **Don't want to build it yourself?** Prebuilt, signed images live in
 > [`tee/`](tee/) with the exact base-firmware hash each one targets — and
@@ -227,12 +227,12 @@ that is the least painful path.
 | [README.md](README.md) | Chinese version of this README |
 | [README.ja.md](README.ja.md) | Japanese version of this README |
 | [README.ru.md](README.ru.md) | Russian version of this README |
-| [docs/01-enable-kvm.md](docs/01-enable-kvm.md) | **Full KVM enablement**: the principle, verification-chain analysis, flashing and validation |
-| [docs/02-build-and-sign.md](docs/02-build-and-sign.md) | **Build & signing walkthrough**: what the NoGZ patch changes, how pwnage signs, handling oversized images |
-| [docs/03-windows-vm.md](docs/03-windows-vm.md) | The Windows 11 ARM64 disk: applying the image, writing boot files, bypassing TPM, injecting drivers |
-| [docs/04-usage.md](docs/04-usage.md) | **Usage**: every QEMU flag explained, VNC, networking, performance tuning |
-| [docs/05-gotchas.md](docs/05-gotchas.md) | **Gotcha list** (12 entries) — every trap we actually hit |
-| [docs/06-mainline.md](docs/06-mainline.md) | Going further: mainline Linux + KDE on the same device |
+| [docs/en/01-enable-kvm.md](docs/en/01-enable-kvm.md) | **Full KVM enablement**: the principle, verification-chain analysis, flashing and validation |
+| [docs/en/02-build-and-sign.md](docs/en/02-build-and-sign.md) | **Build & signing walkthrough**: what the NoGZ patch changes, how pwnage signs, handling oversized images |
+| [docs/en/03-windows-vm.md](docs/en/03-windows-vm.md) | The Windows 11 ARM64 disk: applying the image, writing boot files, bypassing TPM, injecting drivers |
+| [docs/en/04-usage.md](docs/en/04-usage.md) | **Usage**: every QEMU flag explained, VNC, networking, performance tuning |
+| [docs/en/05-gotchas.md](docs/en/05-gotchas.md) | **Gotcha list** (12 entries) — every trap we actually hit |
+| [docs/en/06-mainline.md](docs/en/06-mainline.md) | Going further: mainline Linux + KDE on the same device |
 | [tee/](tee/) | **Prebuilt signed `tee` images** + the base-firmware compatibility table + `verify.sh` |
 | [profiles/](profiles/) | Firmware profiles (ATF/LK offset definitions) |
 | [tools/](tools/) | Reverse-engineering tools to re-locate offsets for new firmware |
@@ -274,13 +274,13 @@ Two separate cases — don't mix them up:
 > **No — that is a hard limit.** virtio-win's `viogpudo` is a display driver with
 > **no 3D capability**, and Windows has no virgl driver (that is Linux-only). So the
 > Windows guest is always software-rendered. For a GPU-accelerated VM you need the
-> [mainline Linux route](docs/06-mainline.md) with a Linux guest.
+> [mainline Linux route](docs/en/06-mainline.md) with a Linux guest.
 
 **Q: It feels laggy — what should I tune?**
 > It is mostly about the **display path**. Adding `-vnc ...,lossy=on` cuts the per-frame
 > payload from 3.0 MB down to **0.36 MB (1/8.3)**. We also measured the adb forward tunnel
 > at **276 MB/s**, so the network is not the bottleneck — don't waste time tuning it.
-> See [docs/04](docs/04-usage.md).
+> See [docs/04](docs/en/04-usage.md).
 
 **Q: Can I do this without root?**
 > No. Without root you cannot modify `tee_a`, and without that there is no KVM.

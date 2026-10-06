@@ -1,6 +1,6 @@
 # Windows 11 ARM64 磁盘 —— 制作流程
 
-[**中文**](../03-windows-vm.md) | [English](../en/03-windows-vm.md) | [日本語](../ja/03-windows-vm.md) | [Русский](../ru/03-windows-vm.md)
+[**中文**](03-windows-vm.md) | [English](en/03-windows-vm.md) | [日本語](ja/03-windows-vm.md) | [Русский](ru/03-windows-vm.md)
 
 > 目标：不用装虚拟机、不在 VM 里跑安装程序，直接在 PC 上做出**可引导、带驱动、绕过 TPM 检查**的 VHDX。
 

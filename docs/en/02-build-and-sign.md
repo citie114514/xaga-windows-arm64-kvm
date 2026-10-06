@@ -337,4 +337,4 @@ never surfaced.
 
 (Also: `sign_mtk_cert.py` itself has no `--all` argument, so that function should simply return `[]`.)
 
-The fix is in [issues/tee-nogz-1-sign-all-flag.md](../issues/tee-nogz-1-sign-all-flag.md).
+The fix is in [issues/tee-nogz-1-sign-all-flag.md](../../issues/tee-nogz-1-sign-all-flag.md).

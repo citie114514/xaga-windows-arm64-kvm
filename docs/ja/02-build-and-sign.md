@@ -333,4 +333,4 @@ dd で tee_a に書き込み  →  読み戻して sha256 照合  →  再起動
 
 （また、`sign_mtk_cert.py` 自体に `--all` 引数が無いので、この関数は本来 `[]` を返すべきです。）
 
-修正は本リポジトリの [issues/tee-nogz-1-sign-all-flag.md](../issues/tee-nogz-1-sign-all-flag.md) を参照。
+修正は本リポジトリの [issues/tee-nogz-1-sign-all-flag.md](../../issues/tee-nogz-1-sign-all-flag.md) を参照。

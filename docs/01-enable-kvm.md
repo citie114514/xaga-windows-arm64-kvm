@@ -1,6 +1,6 @@
 # 开启 KVM —— 完整流程
 
-[**中文**](../01-enable-kvm.md) | [English](../en/01-enable-kvm.md) | [日本語](../ja/01-enable-kvm.md) | [Русский](../ru/01-enable-kvm.md)
+[**中文**](01-enable-kvm.md) | [English](en/01-enable-kvm.md) | [日本語](ja/01-enable-kvm.md) | [Русский](ru/01-enable-kvm.md)
 
 > 目标：让 Android 上出现 `/dev/kvm`，从而让 QEMU 用上硬件加速（而不是慢到无法使用的 TCG 软件模拟）。
 
