@@ -1,0 +1,55 @@
+{
+ "xagapro": {
+  "tee_sha256": "f8f286f138e758a59159fccb4c9533355616aa1670aada795dd80402fdec5062",
+  "lk_sha256": "8cbaa2e8e25cc7ba90bd17cb83c610d1645b3bccbd8584d3c266f15a7de05ea3",
+  "pc_patch": 110048,
+  "kernel_patch": 25764,
+  "getter": 58720,
+  "getter_before": [
+   3489661352,
+   3108962568
+  ],
+  "callback": 56956,
+  "flag": 282368,
+  "cold": [
+   110008,
+   110140
+  ],
+  "cold_helpers": [
+   46780,
+   46804
+  ],
+  "kernel": [
+   25684,
+   25912
+  ],
+  "ep": 338224,
+  "kernel_args": 338400,
+  "tag_parser": [
+   26248,
+   26864
+  ],
+  "args_getter": [
+   47056,
+   47104
+  ],
+  "handoff_global": 338672,
+  "lk_parser": [
+   85164,
+   85312
+  ],
+  "lk_getter": 125096,
+  "lk_callback": 125116,
+  "lk_gate": 10452,
+  "lk_skip": 10500,
+  "lk_stack": [
+   108448,
+   108492
+  ],
+  "lk_elcheck": [
+   14792,
+   14956
+  ],
+  "lk_illegal": 14872
+ }
+}

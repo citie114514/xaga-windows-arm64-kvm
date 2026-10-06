@@ -149,6 +149,9 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | [docs/04-usage.md](docs/04-usage.md) | **使用方法**：QEMU 参数逐条说明、VNC、网络、性能调优 |
 | [docs/05-gotchas.md](docs/05-gotchas.md) | **坑清单**（10 条，全是我们踩过的） |
 | [docs/06-mainline.md](docs/06-mainline.md) | 进阶：换主线 Linux + KDE 的路线 |
+| [tee/](tee/) | **成品 tee 镜像**（已签名，可直接刷）+ 适配基座对照表 |
+| [profiles/](profiles/) | 固件 profile（ATF/LK 偏移定义）|
+| [tools/](tools/) | 为新固件重新定位 profile 的逆向工具 |
 | [scripts/](scripts/) | 一键脚本 + 启动脚本 + 抓帧/探针工具 |
 
 ---
