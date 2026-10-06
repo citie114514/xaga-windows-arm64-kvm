@@ -127,12 +127,22 @@ adb shell su -c 'cat /proc/misc | grep kvm'
 ### 第 3 步：推到手机并启动
 
 ```bash
+# 先把手机端脚本推上去（都在 scripts/phone/）
+adb push scripts/phone/boot-win.sh scripts/phone/stop-vm.sh scripts/phone/restore-disk.sh /data/local/tmp/
+adb shell su -c 'chmod 755 /data/local/tmp/*.sh'
+
+# 把磁盘放到位（restore-disk.sh 会检查格式、空间，并校验 sha256）
 adb push win.vhdx /data/local/tmp/win.vhdx
-adb shell su -c 'mkdir -p /data/media/0/DroidVM && mv /data/local/tmp/win.vhdx /data/media/0/DroidVM/'
-adb shell su -c /data/local/tmp/boot-win.sh      # 把 scripts/boot-win.sh 推上去
+adb shell su -c 'sh /data/local/tmp/restore-disk.sh /data/local/tmp/win.vhdx'
+
+# 启动（脚本会自己等 5900 空闲、启动后核对端口）
+adb shell su -c 'sh /data/local/tmp/boot-win.sh'
 adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 # VNC 客户端连 127.0.0.1:5900（无密码）
 ```
+
+> 磁盘丢了或换新盘时，直接跑 `restore-disk.sh <镜像>` 即可 ——它会自动识别
+> VHDX / QCOW2 / VHD、检查 `/data` 剩余空间、必要时确认覆盖，最后算 sha256 校验。
 
 首次开机会跑 OOBE，5~15 分钟。到「连接网络」那页选 **【我没有 Internet 连接】** →
 **【继续执行受限设置】** 建本地账户最省事。
@@ -152,7 +162,8 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | [tee/](tee/) | **成品 tee 镜像**（已签名，可直接刷）+ 适配基座对照表 |
 | [profiles/](profiles/) | 固件 profile（ATF/LK 偏移定义）|
 | [tools/](tools/) | 为新固件重新定位 profile 的逆向工具 |
-| [scripts/](scripts/) | 一键脚本 + 启动脚本 + 抓帧/探针工具 |
+| [scripts/](scripts/) | 一键脚本（构建 VHDX / 提驱动 / 开 KVM）|
+| [scripts/phone/](scripts/phone/) | **手机端脚本**：`boot-win.sh` 启动 / `stop-vm.sh` 停止 / `restore-disk.sh` 恢复磁盘 |
 
 ---
 
@@ -162,7 +173,7 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 > QEMU 的 `-vnc host:0` 里那个数字是 **display 号**，端口 = `5900 + display`。
 > 写成 `-vnc :5900` 会变成端口 **11800**（不是 5900！）。
 > 而且端口被占时 QEMU 会**静默挪到下一个 display**（→ 5901），
-> 所以 `scripts/boot-win.sh` 会先等端口空闲、启动后再核对实际端口。
+> 所以 `scripts/phone/boot-win.sh` 会先等端口空闲、启动后再核对实际端口。
 
 **Q: Windows 有没有 GPU 加速？**
 > **没有，这是硬限制。** virtio-win 的 `viogpudo` 只是显示驱动，**没有 3D 能力**；

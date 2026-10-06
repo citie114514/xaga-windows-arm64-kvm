@@ -204,6 +204,43 @@ adb shell su -c 'export LD_LIBRARY_PATH=/system/lib64; \
 - **不加 `-c`**：约 90 秒，但文件大 2 GB 左右
 - 产出可直接当 qcow2 盘用（`format=qcow2`），也可以 `qemu-img convert` 转回 vhdx
 
+### 恢复 / 更换磁盘
+
+把备份镜像放回 `win.vhdx` 的位置。用 `restore-disk.sh`，它会：
+
+1. 读文件头**自动识别格式**（VHDX / QCOW2 / VHD）
+2. 对比 `/data` 剩余空间，不够就报错而不写到一半
+3. 目标已存在时**先提醒再覆盖**（3 秒可 Ctrl-C）
+4. 复制完算 **sha256 校验**
+
+```bash
+adb push win.vhdx /data/local/tmp/
+adb shell su -c 'sh /data/local/tmp/restore-disk.sh /data/local/tmp/win.vhdx'
+```
+
+> ⚠️ **不要直接** `adb push win.vhdx /data/media/0/DroidVM/` ——
+> 那个目录普通 adb 权限写不进去（root 专属），会 `permission denied`。
+> 必须先推 `/data/local/tmp`，再用 root 移过去。`restore-disk.sh` 已经处理了。
+
+**如果是 QCOW2 盘**（比如从上面的压缩快照恢复），记得把 `boot-win.sh` 里的
+`format=vhdx` 改成 `format=qcow2`，否则 QEMU 会拒绝打开。
+
+### 检查当前状态
+
+```bash
+# 有没有在跑
+adb shell su -c 'pgrep qemu-system-aar | wc -l'
+
+# VNC 是不是在 5900
+adb shell su -c 'netstat -tln | grep 5900'
+
+# 最后启动日志（参数、报错都在这）
+adb shell su -c 'tail -40 /data/local/tmp/win-qemu.log'
+
+# 串口日志（Windows 启动早期在这是能看到东西的）
+adb shell su -c 'tail -40 /data/local/tmp/win-serial.log'
+```
+
 ### 空间
 
 系统盘实时占用会长到 **~23 GB**（100 GiB 虚拟大小的动态盘）。
