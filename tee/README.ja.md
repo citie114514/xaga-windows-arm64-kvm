@@ -7,6 +7,55 @@
 
 ---
 
+# 🛑 試す前に必ず読んでください
+
+## ① まず【エンジニアリング preloader】を焼く —— さもないと退路が無いかもしれません
+
+```
+純正 preloader       ⇒ EDL に小米アフターサービスのアカウント認可が必要 ✗
+                    ⇒ tee を間違えて起動しなくなったとき、【認証不要の救助路が無い】✗
+
+エンジニアリング preloader ⇒ usbdl_verify_da の戻り値が破棄され、SLA/DAA が実質無効化
+                        ⇒ SP Flash / mtkclient で【アカウント無しで】書き込める ✓
+                        ⇒ これが「壊しても救える」の実際の前提 ✓
+```
+
+```bash
+fastboot flash preloader1 preloader_xaga.bin
+fastboot flash preloader2 preloader_xaga.bin
+fastboot reboot
+```
+
+（by-name では `preloader_raw_a` / `preloader_raw_b`）
+
+> ⚠️ エンジニアリング preloader が免除するのは**書き込みの認証だけ**で、
+> **起動時のイメージ検証は切れません** ✗ —— `sbc_en` は依然 1 で、ATF は毎回検証されます
+> （[../docs/05-gotchas.md](../docs/05-gotchas.md) 参照）。
+
+## ② どの機種に使えるか
+
+| コードネーム | 市場名 | 本プロジェクト |
+|---|---|---|
+| **`xagapro`** | **Redmi Note 11T Pro+** / **Redmi K50i** | ✅ **本プロジェクトの実測機**（2 つの完成品はここから出ています）|
+| `xaga` | **Redmi Note 11T Pro** / **POCO X4 GT** | ⚠️ ファームウェアが異なり固有の profile が必要。ただし**ベース違いでも起動することは実測済み**なので、バックアップしてから試すことは可能 |
+
+どちらも **MT6895 / Dimensity 8100** で、原理は同一、違いはファームウェアベースだけです。
+
+---
+
+## 👉 完成品をそのまま試したい場合の順序
+
+```
+① エンジニアリング preloader を焼けることを確認（ファイルがある + fastboot / SP Flash が使える）
+② 焼いて正常起動を確認
+③ バックアップ：tee_a / tee_b / lk_a / lk_b / preloader_raw_a / seccfg
+④ tee/verify.sh で自分の機体がどの完成品に合うか確認
+⑤ 書き込み → 再起動 → 【3 分待つ】（毎回の起動で 2 回目の画面が 1〜2 分止まる。文鎮ではない）
+⑥ 確認：adb shell su -c 'ls -l /dev/kvm'
+```
+
+---
+
 # ⭐ 実機検証に成功した例
 
 ## [`tee_nogz_rk_5M.img`](tee_nogz_rk_5M.img) —— **実機で KVM が動作**

@@ -2,14 +2,17 @@
 
 [中文](README.md) | [English](README.en.md) | **日本語** | [Русский](README.ru.md)
 
-> Redmi Note 11T Pro / Pro+（MT6895 / Dimensity 8100）で実機検証済み。
+> Redmi Note 11T Pro+ / **Redmi K50i**（MT6895 / Dimensity 8100）で実機検証済み。
+> 同じ SoC ファミリーの **Redmi Note 11T Pro / POCO X4 GT**（コードネーム `xaga`）も原理は同じですが、
+> ファームウェアが違うため固有の profile が必要です（先にバックアップしてから完成品を試すことは可能 ——
+> ベース違いでも起動することは実測済み）。
 > **ROM を焼き直す必要も、OS を入れ替える必要もありません。Android のまま仮想マシンを動かせます。**
 
 ![Windows 11 ARM64 のデスクトップ](images/final-1080.png)
 
 ---
 
-## ⚠️ 始める前に必ず知っておくべき 2 つのこと
+## ⚠️ 始める前に必ず知っておくべき **3** つのこと
 
 ### 1. root 権限が必要（回避不可）
 
@@ -35,6 +38,44 @@ ATF の差し替えは**起動チェーンの改変**です。本プロジェク
 - **SP Flash Tool での全書き換えはしないこと**（ブートローダーが再ロックされます）
 - 壊してしまっても **preloader モード**（認証不要）で復旧できる可能性があります
 - **全て自己責任で**
+
+### 3. ⭐ `tee` を試す前に【エンジニアリング preloader】を焼く —— 唯一の認証不要復旧路
+
+**これはバックアップより重要です** ✗：
+
+```
+純正 preloader       ⇒ EDL に小米アフターサービスのアカウント認可が必要 ✗
+                    ⇒ tee を間違えて起動しなくなったとき、【認証不要の救助路が無い】✗
+
+エンジニアリング preloader ⇒ usbdl_verify_da の戻り値が破棄される
+                        ⇒ SLA / DAA 検査が実質無効化
+                        ⇒ SP Flash / mtkclient で【アカウント無しで】書き込める ✓
+                        ⇒ これが「壊しても救える」の実際の前提 ✓
+```
+
+**エンジニアリング preloader の書き込み（fastboot で十分。tee よりずっと簡単）**：
+
+```bash
+fastboot flash preloader1 preloader_xaga.bin
+fastboot flash preloader2 preloader_xaga.bin
+fastboot reboot
+```
+
+（本機の by-name では `preloader_raw_a` / `preloader_raw_b`）
+
+> ⚠️ エンジニアリング preloader が免除するのは**「書き込み」の認証だけ**で、
+> **「起動時のイメージ検証」は切れません** ✗ —— `sbc_en` は eFuse から読まれ、実測値は依然 **1** で、
+> ATF は毎回起動で検証されています ✓ したがって「改変 ATF には署名が必要」は変わりません ——
+> [docs/05](docs/05-gotchas.md) と [appendix-atf-reverse](docs/appendix-atf-reverse.md) を参照。
+
+**→ 推奨する完全な順序**：
+
+```
+① エンジニアリング preloader を焼けることを確認（ファイルがある + fastboot / SP Flash が使える）
+② 焼いて、正常に起動することを確認
+③ tee_a / tee_b / lk_a / lk_b / preloader_raw_a / seccfg をバックアップ
+④ それから本プロジェクトの完成品 tee を試す
+```
 
 ---
 
