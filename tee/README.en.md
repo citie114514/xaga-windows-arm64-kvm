@@ -210,10 +210,33 @@ write a `TEE_README.txt` next to them saying which one is safe.
 
 ---
 
-## ⚠️ The core rule: a patch is bound to one `tee` base
+## ⚠️ The core rule: a patch is bound to one `tee` base — **but "cross-base cannot boot" has been disproved**
 
 The NoGZ patch modifies the **boot handover logic of the `atf` member** inside the `tee`
 partition, so it is only valid for **the exact base it was built from**.
+
+### 🧪 Decisive experiment, 2026-10-07: **cross-base boots normally** ✓
+
+```
+Device 1 (original tee_a = f8f286f1…, i.e. the rk patch's own base)
+  -> flashed the shuilan patch (17ec8497…, base a91f5ded…)   <- genuinely cross-base
+  -> came back on the network 136 seconds after rebooting
+  -> then 12/12 checks over 3 minutes, continuously online (not a boot loop)
+  -> system normal, tee_b untouched throughout
+```
+
+**→ So "cross-base always breaks" is wrong** ✗, and "a cross-base patch cannot boot" is wrong too ✗.
+
+**What that earlier "boot hang" really was**: the **1–2 minute delay that happens on every boot** ✗
+(see [docs/05-gotchas.md item 12](../docs/05-gotchas.md)) — at the time we didn't wait long enough,
+went into fastboot, and interrupted a boot that would have succeeded ✗.
+
+**→ Recommended anyway: use the patch built for your own base** ✓ — not because "otherwise it hangs" ✗,
+but because **same-base is more conservative with fewer variables** ✓.
+
+> 🔑 **Practical takeaway**: **don't panic if you flashed the wrong base** ✓ — it will sit at the second
+> screen for 1–2 minutes first; **give it 3 minutes** and it will very likely come up on its own ✓
+> (backing up first still never hurts).
 
 **What has been empirically confirmed to matter — and what does not:**
 
