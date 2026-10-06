@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 citie114514
+Copyright (c) 2026 被win11吃掉的磁贴
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,22 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----------------------------------------------------------------------------
-
-NOTE ON THE LICENSE SCOPE
-
-The MIT license above covers the source code, scripts and documentation in
-this repository that were written by the repository author.
-
-It does NOT cover:
-
-  * vendor firmware images (for example the prebuilt, signed `tee` images
-    under `tee/`), which contain binaries and certificate chains originating
-    from MediaTek and the device vendor;
-  * Windows, Windows installation media, virtio-win drivers, or any other
-    third-party software referenced here.
-
-Those remain subject to their own licenses and terms. They are redistributed
-or referenced here only for interoperability research and personal use on
-hardware you own. Use them at your own risk.
