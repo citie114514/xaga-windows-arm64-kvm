@@ -210,6 +210,7 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | [profiles/](profiles/) | 固件 profile（ATF/LK 偏移定义）|
 | [tools/](tools/) | 为新固件重新定位 profile 的逆向工具 |
 | [scripts/](scripts/) | 一键脚本（构建 VHDX / 提驱动 / 开 KVM）|
+| [scripts/write-boot-manual.ps1](scripts/write-boot-manual.ps1) | **绕开 `bcdboot` 手工写 UEFI 引导**（宿主开了 Secure Boot 时，`bcdboot` 会因缺 `EFI_EX` 而失败 —— 见 [docs/05](docs/05-gotchas.md) 第 13 条）|
 | [scripts/phone/](scripts/phone/) | **手机端脚本**：`boot-win.sh` 启动 / `stop-vm.sh` 停止 / `restore-disk.sh` 恢复磁盘 / `qemu-wrapper.sh` 让 DroidVM 应用自己也能跑 |
 
 ---
