@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     一键从 Windows 11 ARM64 ISO 制作可直接给 QEMU 启动的 VHDX（含引导 + virtio 驱动 + TPM 绕过）
 
@@ -73,15 +73,28 @@ $isEsd = $wim.EndsWith('.esd')
 Info "映像文件: $wim $(if($isEsd){'(ESD)'})"
 
 $wimInfo = & dism /Get-WimInfo "/WimFile:$wim" 2>&1
-# 解析出 索引 / 名称 / 架构
+# 解析出索引/名称（兼容中英文，且冒号前后可能有空格）
 $images = @()
-$cur = @{}
+$cur = $null
 foreach ($line in $wimInfo) {
-    if ($line -match '^索引:\s*(\d+)' -or $line -match '^Index:\s*(\d+)') { if ($cur.Count) { $images += [pscustomobject]$cur }; $cur = @{ Index = [int]$Matches[1] } }
-    elseif ($line -match '^名称:\s*(.+)$' -or $line -match '^Name:\s*(.+)$') { $cur.Name = $Matches[1].Trim() }
-    elseif ($line -match '^体系结构:\s*(.+)$' -or $line -match '^Architecture:\s*(.+)$') { $cur.Arch = $Matches[1].Trim() }
+    $s = "$line"
+    if ($s -match '^\s*(Index|索引)\s*:\s*(\d+)') {
+        if ($null -ne $cur) { $images += [pscustomobject]$cur }
+        $cur = @{ Index = [int]$Matches[2]; Name = ''; Arch = '' }
+    }
+    elseif ($null -ne $cur -and $s -match '^\s*(Name|名称)\s*:\s*(.+)$') {
+        $cur.Name = $Matches[2].Trim()
+    }
 }
-if ($cur.Count) { $images += [pscustomobject]$cur }
+if ($null -ne $cur) { $images += [pscustomobject]$cur }
+
+# 架构要单独用 /Index:N 查（列表里没有这个字段）
+foreach ($im in $images) {
+    $one = & dism /Get-WimInfo "/WimFile:$wim" "/Index:$($im.Index)" 2>&1
+    foreach ($l in $one) {
+        if ("$l" -match '^\s*(Architecture|体系结构)\s*:\s*(.+)$') { $im.Arch = $Matches[2].Trim(); break }
+    }
+}
 
 if (-not $images) { Fail "解析 install.wim 信息失败：`n$wimInfo" }
 Write-Host "  映像列表:" -ForegroundColor DarkGray
@@ -89,13 +102,21 @@ $images | ForEach-Object { Write-Host ("    [{0}] {1}   ({2})" -f $_.Index, $_.N
 
 if ($Index -le 0) {
     $arm = $images | Where-Object { $_.Arch -match 'ARM64|arm64' } | Select-Object -First 1
-    if (-not $arm) { Fail '这个 ISO 里没有 ARM64 映像 —— 你下的是 x64 的 ISO 吧？' }
-    $Index = $arm.Index
-    Ok "自动选中 ARM64 映像: [$Index] $($arm.Name)"
+    if ($arm) {
+        $Index = $arm.Index
+        Ok "自动选中 ARM64 映像: [$Index] $($arm.Name)"
+    } elseif ($images.Count -gt 0) {
+        # 拿不到架构信息时，退回选最后一个（多版本 ISO 通常最后一个功能最全）
+        Warn "ISO 里没读出 Architecture 字段；默认选最后一个映像（通常是专业版）"
+        $Index = ($images | Select-Object -Last 1).Index
+        Ok "选用: [$Index] $(($images | Select-Object -Last 1).Name)"
+    } else {
+        Fail "没解析出任何映像"
+    }
 } else {
     $sel = $images | Where-Object { $_.Index -eq $Index }
     if (-not $sel) { Fail "索引 $Index 不存在" }
-    if ($sel.Arch -notmatch 'ARM64|arm64') { Fail "索引 $Index 的架构是 $($sel.Arch)，不是 ARM64 —— 会做出无法启动的盘" }
+    if ($sel.Arch -and $sel.Arch -notmatch 'ARM64|arm64') { Fail "索引 $Index 的架构是 $($sel.Arch)，不是 ARM64 —— 会做出无法启动的盘" }
     Ok "选定映像: [$Index] $($sel.Name)"
 }
 
@@ -104,11 +125,27 @@ Section "创建并分区 VHDX（MSR + Windows + ESP）"
 
 if (Test-Path $Out) { Fail "输出文件已存在: $Out（先删掉或换个路径，避免覆盖）" }
 
-New-VHD -Path $Out -SizeBytes ($SizeGB * 1GB) -Dynamic | Out-Null
-Ok "已创建动态 VHDX: $Out  ($SizeGB GiB)"
+# 用 diskpart 创建并挂载动态 VHDX（无需 Hyper-V 模块）
+$createScript = @"
+create vdisk file="$Out" maximum=$($SizeGB * 1024) type=expandable
+select vdisk file="$Out"
+attach vdisk
+"@
+Write-Host "    -- diskpart 脚本 --" -ForegroundColor DarkGray
+$createScript -split "`n" | ForEach-Object { if ($_.Trim()) { Write-Host "      $_" -ForegroundColor DarkGray } }
+$cFile = Join-Path $env:TEMP "vhd_create_$(Get-Random).txt"
+Set-Content -Path $cFile -Value $createScript -Encoding ASCII
+$cr = & diskpart /s $cFile 2>&1
+$cr | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+Remove-Item $cFile -Force -ErrorAction SilentlyContinue
+if (-not (Test-Path $Out)) { Fail "diskpart 创建 VHD 失败，看上面输出" }
+Ok "已创建并挂载动态 VHDX: $Out  ($SizeGB GiB)"
 
-$vhd  = Mount-VHD -Path $Out -Passthru
-$disk = Get-Disk -Number $vhd.DiskNumber
+# 找到刚挂上的虚拟盘
+Start-Sleep -Seconds 2
+$disk = Get-Disk | Where-Object { $_.BusType -eq 'File Backed Virtual' } |
+        Sort-Object Number -Descending | Select-Object -First 1
+if (-not $disk) { Fail '没找到刚挂载的虚拟磁盘（Get-Disk 里没有 File Backed Virtual）' }
 Info "已挂载为 Disk $($disk.Number)，$([int]($disk.Size/1GB)) GiB"
 
 # 用 diskpart 分区（对 ESP 的 GPT 类型处理最省事）
@@ -205,7 +242,14 @@ Section "收尾"
 & dism /Image:G:\ /Cleanup-Image /StartComponentCleanup 2>&1 | Out-Null   # 可选，失败无所谓
 
 Write-Host "  卸载 VHD ..." -NoNewline
-Dismount-VHD -Path $Out
+$detachScript = @"
+select vdisk file="$Out"
+detach vdisk
+"@
+$dFile = Join-Path $env:TEMP "vhd_detach_$(Get-Random).txt"
+Set-Content -Path $dFile -Value $detachScript -Encoding ASCII
+& diskpart /s $dFile 2>&1 | Out-Null
+Remove-Item $dFile -Force -ErrorAction SilentlyContinue
 Write-Host ' 完成' -ForegroundColor Green
 
 Write-Host "  卸载 ISO ..." -NoNewline

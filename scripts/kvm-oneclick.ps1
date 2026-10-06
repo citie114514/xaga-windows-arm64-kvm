@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     一键在 MediaTek 设备上开启 KVM（替换 TEE 里的 ATF 为 NoGZ 补丁版并签名刷入）
 

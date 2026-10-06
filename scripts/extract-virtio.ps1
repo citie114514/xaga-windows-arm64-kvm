@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     从 virtio-win.iso 抽出 Windows 11 ARM64 的 virtio 驱动，并校验每个 .sys 都是 ARM64
 
