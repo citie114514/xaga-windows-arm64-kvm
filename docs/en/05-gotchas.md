@@ -469,6 +469,59 @@ Reaches the second screen (logo2)
 
 ---
 
+## 14. 🔴 **Enabling KVM breaks hardware video decoding — don't use it on a daily driver**
+
+**Symptoms** (measured on real hardware, three states: before / after / after reverting)
+
+| Function | Before | After | After reverting |
+|---|---|---|---|
+| Moonlight streaming | ✅ | ❌ **no response** | ✅ restored |
+| UU Remote | ✅ | ❌ **unusable** | ✅ restored |
+| QQ chat images | ✅ | ❌ **don't display** | ✅ restored |
+| Internal storage | ✅ | ⚠️ may not mount at boot | ✅ restored |
+| App data | ✅ | ⚠️ may be corrupted | —— |
+
+**Reverting to stock restores everything** ✓ — so the fault really is caused by the patch ✓
+
+**Cause**
+
+```
+MediaTek's hardware codec (mtk-vcodec) depends on:
+   · mtk_sec_heap        secure memory
+   · gz_tz_system        TEE services provided by GZ
+   · gz_trusty_mod
+   · cmdq_sec_drv        secure command queue
+
+The NoGZ patch stops GZ from getting EL2  ->  that chain breaks ✗
+   ->  hardware decoder init fails ✗
+   ->  Moonlight / UU Remote / QQ images / thumbnails  all affected ✗
+```
+
+> ⚠️ **Key point: this is unrelated to whether the base matches** ✗
+> A same-base patch (built from this very device's firmware) **does it too** ✓
+> It is the inherent cost of **NoGZ killing GZ** ✓
+
+**Why it wasn't caught earlier**
+
+The early A/B comparison only tested:
+KeyMint hardware keys, Gatekeeper, Widevine, fingerprint, Secure Element
+— **all fine** ✓ — which led to the conclusion "doesn't affect daily use" ✗
+
+**But it never tested hardware video decoding** ✗ — which is the part that actually breaks ✓
+
+**How to use it properly**
+
+| | |
+|---|---|
+| ❌ **Don't** | use a KVM-enabled phone as a daily driver |
+| ✅ **Good for** | a spare / test / dedicated-VM phone |
+| ✅ **Or** | accept "hardware video decoding unavailable" |
+| ✅ **Want both** | go the [mainline Linux](06-mainline.md) route |
+
+**Rollback**: flash the backed-up `tee_a` back and reboot → every function returns ✓
+
+---
+
 ## Appendix: things that look like traps but aren't
 
 | Symptom | Truth |

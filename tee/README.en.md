@@ -125,7 +125,57 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_a bs=4096 2>/dev/null | sha256sum'
 
 ---
 
-## ❓ Does patching `tee` affect app integrity / detection? **No — tested.**
+## ⚠️ The measured cost: enabling KVM breaks **hardware video decoding** — not for a daily driver
+
+**This matters, and it overturns an earlier claim in this document** ✗
+
+Measured on one device across three states (before / after / after reverting):
+
+| Function | Before | After | After reverting |
+|---|---|---|---|
+| Moonlight streaming | ✅ | ❌ **no response** | ✅ restored |
+| UU Remote | ✅ | ❌ **unusable** | ✅ restored |
+| QQ chat images | ✅ | ❌ **don't display** | ✅ restored |
+| Internal storage | ✅ | ⚠️ may not mount at boot | ✅ restored |
+| App data | ✅ | ⚠️ may be corrupted (QQ reported "chat history anomaly") | —— |
+
+**Reverting to stock restores everything** ✓ (measured)
+
+### Why
+
+```
+MediaTek's hardware codec (mtk-vcodec) depends on:
+   · mtk_sec_heap        secure memory
+   · gz_tz_system        TEE services provided by GZ
+   · gz_trusty_mod
+   · cmdq_sec_drv        secure command queue
+
+The NoGZ patch stops GZ from getting EL2  ->  that dependency chain breaks ✗
+   ->  hardware decoder initialisation fails ✗
+   ->  Moonlight / UU Remote / QQ images / thumbnail generation  all affected ✗
+```
+
+**Note: this has NOTHING to do with whether the base matches** ✗ — a same-base patch does it too,
+because it is the cost of **NoGZ killing GZ** itself ✓
+
+### So how should this be used
+
+| | |
+|---|---|
+| ❌ **Don't** | use a KVM-enabled phone as a daily driver |
+| ✅ **Good for** | a spare / test / dedicated-VM phone |
+| ✅ **Or** | accept "hardware video decoding unavailable" |
+| ✅ **Want both** | go the [mainline Linux](../docs/06-mainline.md) route (different trade-offs) |
+
+> 🛠 **This document used to say "it doesn't affect daily use" — that was wrong** ✗
+> The A/B test at the time only covered KeyMint / Gatekeeper / Widevine / fingerprint,
+> and **never tested hardware video decoding** ✗. Corrected.
+
+---
+
+## ❓ Does it affect app integrity checks? (KeyMint / DRM / fingerprint)
+
+That is a different question, and the answer is **no** ✓:
 
 This is the first question anyone should ask before flashing. We ran an A/B test on two
 units (one stock, one patched) plus before/after on the same device.

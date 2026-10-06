@@ -8,6 +8,35 @@
 > prebuilt images first — cross-base has been measured to boot).
 > **No custom ROM, no reflashing your daily system — stay on Android and still run VMs.**
 
+---
+
+> # ⚠️ Positioning first: this is a **toy / experiment**, **not for a daily driver**
+>
+> The cost of enabling KVM is that **hardware video decoding stops working** ✗ — measured:
+>
+> | | Before | After | After reverting |
+> |---|---|---|---|
+> | Moonlight streaming | ✅ | ❌ **no response** | ✅ restored |
+> | UU Remote | ✅ | ❌ **unusable** | ✅ restored |
+> | QQ chat images | ✅ | ❌ **don't display** | ✅ restored |
+> | Internal storage | ✅ | ⚠️ may not mount at boot | ✅ restored |
+> | App data | ✅ | ⚠️ may be corrupted | —— |
+>
+> **Reverting restores everything immediately** ✓ (measured)
+>
+> | | |
+> |---|---|
+> | ❌ **Not suitable** | a daily-driver phone |
+> | ✅ **Suitable** | a spare / test / dedicated-VM phone |
+> | ✅ **Or** | accept "hardware video decode unavailable" |
+> | ✅ **Want both** | go the [mainline Linux](docs/06-mainline.md) route |
+>
+> **Why**: MediaTek's hardware codec depends on `mtk_sec_heap` + `gz_tz_system` + `cmdq_sec_drv`;
+> once GZ can't get EL2 that chain breaks ✗
+> ⚠️ **This has nothing to do with base matching** ✗ — a same-base patch does it too ✓
+>
+> Full measurements and rollback: [docs/05-gotchas.md item 14](docs/05-gotchas.md)
+
 ![Windows 11 ARM64 desktop](images/final-1080.png)
 
 ---
