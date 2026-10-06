@@ -321,4 +321,3 @@ Two separate cases — don't mix them up:
 > The vendor firmware images under [`tee/`](tee/) contain binaries and certificate chains
 > originating from MediaTek and the device vendor; they are **not** covered by the MIT
 > license and are provided only for interoperability research on hardware you own.
-> See the note at the end of [LICENSE](LICENSE).
