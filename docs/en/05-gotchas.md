@@ -355,7 +355,7 @@ Measured (same Redmi Note 11T Pro+, two devices compared):
 > at the second screen for nearly 2 minutes** (see item 12). At the time we didn't wait long enough
 > and declared it dead ✗.
 > And the 2026-10-07 experiment on device 1 has settled it: **a cross-base patch boots normally** ✓
-> —— not "it will fail" ✗, not "unverified" ⚠️, but **measured and working** ✓ (see [tee/README.en.md](../tee/README.en.md)).
+> —— not "it will fail" ✗, not "unverified" ⚠️, but **measured and working** ✓ (see [tee/README.en.md](../../tee/README.en.md)).
 > Recommending a patch built for your own base is still correct ✓ — the reason is **TEE OS version
 > matching**, not that it would hang.
 
@@ -435,7 +435,7 @@ response from GZ**, times out, and then continues — hence "stuck but not dead"
 | Screen | hangs at the **second** screen (logo2) with a spinner | hangs at the **first** screen, or a black screen that **falls into fastboot** |
 | adb | **device visible** (`adb devices` shows the serial) | not visible, or already in fastboot |
 | Time | comes up by itself in 1–3 minutes | no change after 5+ minutes |
-| Action | **wait** ✓ | restore the backup (see the rollback section of [tee/README.md](../../tee/README.en.md)) |
+| Action | **wait** ✓ | restore the backup (see the rollback section of [tee/README.md](../../../tee/README.en.md)) |
 
 > 💡 Lesson: this project once wasted a recovery because it didn't wait long enough and treated
 > this as a real brick. **After flashing, give the first boot 3 minutes.**
