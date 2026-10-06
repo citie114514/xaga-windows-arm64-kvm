@@ -96,8 +96,9 @@ bash tee/verify.sh <serial>        # or name one explicitly
 It prints your device's `tee_a` / `tee_b` and distinguishes three states: **not patched / already
 patched / you need to build your own**.
 
-> ⚠️ **A patch is bound to one `tee` base**: changes to `lk`, `gz`, `dtbo`, `boot` or `system` don't
-> matter — **only a changed `tee` base breaks it** (a ROM/OTA can change it behind your back).
+⚠️ **A patch is built for one `tee` base** — prefer the one built for yours (more conservative, fewer
+> variables). **But a cross-base patch does boot** ✓ (measured 2026-10-07); it just sits at the second
+> screen for 1–2 minutes first — give it 3 minutes.
 >
 > ⚠️ **Every boot after flashing hangs at the second screen for about 1–2 minutes** before reaching
 > the system — that is normal, **not a brick, just wait**. Do not rush into fastboot; that interrupts
@@ -168,7 +169,7 @@ adb shell su -c 'cat /proc/misc | grep kvm'
 > **Don't want to build it yourself?** Prebuilt, signed images live in
 > [`tee/`](tee/) with the exact base-firmware hash each one targets — and
 > `bash tee/verify.sh` tells you which one (if any) is safe for your device.
-> **A patch is bound to one `tee` base — use the one built for yours.**
+> **Prefer the patch built for your `tee` base** — but a cross-base one does boot (measured); it just takes 3 minutes on first boot.
 > ⚠️ Also note: **every boot after flashing a patch hangs at the second screen for about
 > 1–2 minutes** — that is normal, not a brick. Don't rush into fastboot.
 

@@ -318,7 +318,8 @@ the first boot after flashing a patch always hangs at the second screen for ~2 m
 
 **Cause**
 The NoGZ patch modifies the boot handover logic of the `atf` member inside the `tee` partition, so
-**the patch is only valid for the `tee` base it was built from**.
+**a patch is built for the `tee` base it was built from** —— though a cross-base patch does boot ✓
+(measured 2026-10-07); it just needs the 1–2 minute wait.
 
 Measured (same Redmi Note 11T Pro+, two devices compared):
 
