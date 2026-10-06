@@ -185,7 +185,7 @@ that is the least painful path.
 | [profiles/](profiles/) | Firmware profiles (ATF/LK offset definitions) |
 | [tools/](tools/) | Reverse-engineering tools to re-locate offsets for new firmware |
 | [scripts/](scripts/) | One-click scripts (build VHDX / extract drivers / enable KVM) |
-| [scripts/phone/](scripts/phone/) | **On-device scripts**: `boot-win.sh`, `stop-vm.sh`, `restore-disk.sh` |
+| [scripts/phone/](scripts/phone/) | **On-device scripts**: `boot-win.sh`, `stop-vm.sh`, `restore-disk.sh`, `qemu-wrapper.sh` |
 
 > 📖 The in-depth docs under `docs/` are currently written in Chinese. The READMEs, the
 > scripts and all script output are bilingual or English-friendly, and the scripts are
@@ -196,11 +196,27 @@ that is the least painful path.
 ## FAQ
 
 **Q: Why can't I connect to VNC?**
-> In QEMU's `-vnc host:0`, that number is the **display number**, and the port is
-> `5900 + display`. Writing `-vnc :5900` gives you port **11800**, not 5900.
-> Worse, when the port is taken QEMU **silently moves to the next display** (→ 5901).
-> That is why `scripts/phone/boot-win.sh` waits for the port to free up and then
-> re-checks which port QEMU actually bound.
+
+Two separate cases — don't mix them up:
+
+**① Launching via this project's `boot-win.sh` (the command-line route)**
+> In QEMU's `-vnc host:N`, `N` is the **display number** and the port is `5900 + N`.
+> Writing `-vnc :5900` actually listens on **11800**, not 5900.
+> Worse, when the port is taken QEMU **does not error — it silently moves to the next
+> display** (→ 5901). That is why `scripts/phone/boot-win.sh` waits for the port to free
+> up and then re-checks which port QEMU actually bound.
+
+**② Launching via DroidVM's own config**
+> There are two more traps here:
+> - `screens.*.vnc.port` defaults to **`-1`**, meaning "pick one automatically" — so
+>   **the port can differ on every launch**, and whatever you forwarded with
+>   `adb forward tcp:5900` has nothing listening on it
+> - Configs created inside the app **don't work on their own** (no `-netdev`, no balloon —
+>   they need a wrapper script to patch the arguments), while **hand-editing `vms.json`
+>   makes the app unable to read it**
+>
+> **That is why this project just uses the command-line route**: port pinned to 5900,
+> full control over every argument. See [scripts/phone/README.md](scripts/phone/README.md).
 
 **Q: Does Windows get GPU acceleration?**
 > **No — that is a hard limit.** virtio-win's `viogpudo` is a display driver with

@@ -166,17 +166,31 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | [profiles/](profiles/) | 固件 profile（ATF/LK 偏移定义）|
 | [tools/](tools/) | 为新固件重新定位 profile 的逆向工具 |
 | [scripts/](scripts/) | 一键脚本（构建 VHDX / 提驱动 / 开 KVM）|
-| [scripts/phone/](scripts/phone/) | **手机端脚本**：`boot-win.sh` 启动 / `stop-vm.sh` 停止 / `restore-disk.sh` 恢复磁盘 |
+| [scripts/phone/](scripts/phone/) | **手机端脚本**：`boot-win.sh` 启动 / `stop-vm.sh` 停止 / `restore-disk.sh` 恢复磁盘 / `qemu-wrapper.sh` 让 DroidVM 应用自己也能跑 |
 
 ---
 
 ## 常见问题
 
 **Q: 为什么 VNC 连不上？**
-> QEMU 的 `-vnc host:0` 里那个数字是 **display 号**，端口 = `5900 + display`。
-> 写成 `-vnc :5900` 会变成端口 **11800**（不是 5900！）。
-> 而且端口被占时 QEMU 会**静默挪到下一个 display**（→ 5901），
+
+两种情况要分开看，别混：
+
+**① 用本项目 `boot-win.sh` 启动（命令行路线）**
+> QEMU 的 `-vnc host:N` 里 `N` 是 **display 号**，端口 = `5900 + N`。
+> 写成 `-vnc :5900` 实际监听的是 **11800**（不是 5900！）。
+> 而且端口被占时 QEMU **不报错，而是静默挪到下一个 display**（→ 5901），
 > 所以 `scripts/phone/boot-win.sh` 会先等端口空闲、启动后再核对实际端口。
+
+**② 用 DroidVM 应用自己的配置启动**
+> 这里还有两个坑：
+> - `vms.json` 里 `screens.*.vnc.port` 的默认值是 **`-1`**，意思是「自动挑一个」
+>   —— **每次启动端口都可能不一样** ✗，你 `adb forward tcp:5900` 转发的端口没人听
+> - 应用自己建的配置**本身就跑不起来**（缺 `-netdev` 和 balloon，需要包装脚本补）；
+>   而**手改 `vms.json` 又会让应用读不出来** ✗
+>
+> **所以本项目直接走命令行路线**，绕开这些：端口固定 5900、参数完全可控。
+> 细节见 [scripts/phone/README.md](scripts/phone/README.md)。
 
 **Q: Windows 有没有 GPU 加速？**
 > **没有，这是硬限制。** virtio-win 的 `viogpudo` 只是显示驱动，**没有 3D 能力**；
