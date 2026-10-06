@@ -192,7 +192,9 @@ miscalculated" classes of problems.
 ## ⚠️ Never keep patches for different bases in one directory
 
 We actually hit this: **a patch for the wrong base was flashed because the filename was
-misleading, and the device stopped at the second boot screen** ✗
+misleading** ✗ — at the time it looked like the device was bricked, but it was most likely just
+**not given the ~2 minutes the first boot after a patch needs**.
+**Don't go and test that, though** ✗ — using the right base is the correct approach ✓
 
 ```
 /data/local/tmp/tee_patched.img     <- wrong base ✗ yet the name looks like "the one to flash"
@@ -247,11 +249,33 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_b bs=4096 2>/dev/null | sha256sum'
 | sha256 | `f1511dca…` | `17ec8497…` |
 | Offline regression | 14/14 ✅ | 14/14 ✅ |
 | Signature check | VALID ✅ | VALID ✅ |
-| **On real hardware** | ✅ **working** | ❌ **not tested** |
+| **On real hardware** | ✅ **working** | ✅ **working** (2026-10-06) |
 | Profile | [`profiles/xagapro.json`](../profiles/xagapro.json) | [`profiles/shuilanA15.json`](../profiles/shuilanA15.json) |
 
-**⚠️ Never mix them up.** Flashing a stock-base patch onto a device whose base was already
-updated **stops it at the second boot screen**, and only a `fastboot` restore brings it back.
+**⚠️ About "mixing them up" — our earlier "it will definitely stop booting" claim is void** ✗
+
+We used to state that flashing a stock-base patch onto a device whose base had been updated
+**stops at the second boot screen**. That conclusion rested on **one misdiagnosed test** ✗ —
+**the first boot after flashing a NoGZ patch normally hangs at the second screen for nearly
+2 minutes** (see [docs/05-gotchas.md item 12](../docs/05-gotchas.md)). We simply did not wait
+long enough ✗.
+
+**→ So "does a cross-base patch work?" should now be recorded as UNVERIFIED** ⚠️, not "it will fail".
+
+### You should still use the patch built for your own base ✓
+
+Not because it would hang ✗, but because a cross-base patch carries another batch's **TEE OS**.
+Even if the system boots, TEE services such as keymint / DRM / Secure Element may mismatch the
+device's current ROM ✗.
+
+### Telling "normal slow" apart from "really broken" ✓
+
+| Signal | Normal ✓ | Really broken ✗ |
+|---|---|---|
+| Screen | hangs at the **second** screen (logo2) | hangs at the **first** screen, or **falls into fastboot** |
+| adb | device **visible** in `adb devices` | not visible, or already in fastboot |
+| Time | boots by itself in 1–3 minutes | no change after 5+ minutes |
+| Action | **wait** ✓ | restore the backup |
 
 ---
 
@@ -313,7 +337,7 @@ It touches **only `tee_a`**; user data and the rest of the system are untouched.
 | File | What it is |
 |---|---|
 | `tee_nogz_rk_5M.img` | ✅ verified-working patch, base `f8f286f1…` |
-| `tee_nogz_shuilanA15_5M.img` | ⏳ offline-verified patch, base `a91f5ded…` |
+| `tee_nogz_shuilanA15_5M.img` | ✅ verified-working patch, base `a91f5ded…` |
 | `verify.sh` | Device self-check — tells you which image fits |
 | `README.md` | Chinese documentation (more detail) |
 

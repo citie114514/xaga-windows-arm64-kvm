@@ -118,10 +118,25 @@ adb shell su -c 'ls -l /dev/kvm'
 adb shell su -c 'cat /proc/misc | grep kvm'
 ```
 
+> ### ⚠️ The first boot after flashing hangs at the second screen for ~2 minutes — that is NOT a brick
+>
+> Measured: **150 seconds** from reboot to `sys.boot_completed=1`, with 120 seconds of a
+> completely static screen in between. Afterwards `/dev/kvm` shows up normally ✓
+>
+> **Do not** press Volume Down + Power to enter fastboot at that moment ✗ —
+> **it interrupts the boot** and turns a boot that would have succeeded into one that really
+> does not ✗. **Wait 3 minutes** ✓
+>
+> Telling them apart: **second screen + device visible in adb = normal, wait** ✓;
+> **first screen, or a black screen falling into fastboot = real failure** ✗.
+> See [docs/05](docs/05-gotchas.md) item 12.
+
 > **Don't want to build it yourself?** Prebuilt, signed images live in
 > [`tee/`](tee/) with the exact base-firmware hash each one targets — and
 > `bash tee/verify.sh` tells you which one (if any) is safe for your device.
-> **A patch is bound to one `tee` base — never mix them.**
+> **A patch is bound to one `tee` base — use the one built for yours.**
+> ⚠️ Also note: **the first boot after flashing a patch hangs at the second screen for about
+> 2 minutes** — that is normal, not a brick. Don't rush into fastboot.
 
 ### Step 2 — Build a Windows 11 ARM64 disk (one script)
 
