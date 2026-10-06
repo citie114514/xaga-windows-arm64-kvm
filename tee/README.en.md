@@ -290,14 +290,16 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_b bs=4096 2>/dev/null | sha256sum'
 | **On real hardware** | ✅ **working** | ✅ **working** (2026-10-06) |
 | Profile | [`profiles/xagapro.json`](../profiles/xagapro.json) | [`profiles/shuilanA15.json`](../profiles/shuilanA15.json) |
 
-**⚠️ About "mixing them up" — our earlier "it will definitely stop booting" claim is void** ✗
+**⚠️ About "mixing them up" — our earlier "it will definitely stop booting" claim is void, and cross-base is now proven to work** ✓
 
 We used to state that flashing a stock-base patch onto a device whose base had been updated
 **stops at the second boot screen**. That conclusion rested on **one misdiagnosed test** ✗ —
 **every boot after flashing a NoGZ patch normally hangs at the second screen for 1–2 minutes** (see [docs/05-gotchas.md item 12](../docs/05-gotchas.md)). We simply did not wait
 long enough ✗.
 
-**→ So "does a cross-base patch work?" should now be recorded as UNVERIFIED** ⚠️, not "it will fail".
+**→ And the 2026-10-07 device-1 experiment has settled this completely** ✓ ——
+**a cross-base patch DOES boot normally: not "it will fail" ✗, not "unverified" ⚠️, but MEASURED AND WORKING** ✓
+(see the full data in the "core rule" section above).
 
 ### You should still use the patch built for your own base ✓
 
