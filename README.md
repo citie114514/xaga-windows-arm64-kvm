@@ -313,14 +313,37 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 **Q: 能不能用别的 Windows 版本？**
 > 需要 **ARM64** 的 Windows。x64 的在 ARM 上只能软件模拟（极慢），没有意义。
 
-**Q: 刷了 `tee` 会不会影响日用的应用检测（银行 App / Play Integrity / DRM）？**
-> **不会，已实测。** 补丁只改变 **EL2 的归属**，不碰 **TEE**。
+**Q: 刷了 `tee` 会不会影响日用（银行 App / Play Integrity / DRM / 视频解码）？**
+
+**要分成两件事看，不要混** ✗：
+
+**① 应用检测（银行 App / Play Integrity / DRM 认证）—— 不影响** ✓
+> 补丁只改变 **EL2 的归属**，不碰 **TEE**。
 > 实测（未刷 / 已刷 A/B 对照，逐项一致）：KeyMint 硬件密钥证明、Gatekeeper、
-> Widevine/DRM、指纹与人脸、Secure Element **全部正常**。
+> Widevine/DRM 认证、指纹与人脸、Secure Element **全部正常**。
 >
-> 另外要分清楚：**`verifiedbootstate = orange`（BL 解锁）本来就是 Play Integrity 的杀手**，
-> 跟你刷不刷 `tee` 无关 —— 本来就是不通过的状态，所以刷了也不会变得更差。
-> 完整实测数据见 [tee/README.md](tee/README.md) 的「刷了之后会不会影响应用检测」一节。
+> 另外：**`verifiedbootstate = orange`（BL 解锁）本来就是 Play Integrity 的杀手**，
+> 跟你刷不刷 `tee` 无关。
+
+**② 但日用会有实际代价 —— 硬件视频解码会失效** ✗
+> 实测（刷前/刷后/刷回 三次对比）：
+>
+> | | 刷之前 | 刷之后 | 刷回后 |
+> |---|---|---|---|
+> | Moonlight | ✅ | ❌ 无响应 | ✅ |
+> | UU 远程 | ✅ | ❌ 用不了 | ✅ |
+> | QQ 图片 | ✅ | ❌ 不显示 | ✅ |
+> | 内部存储 | ✅ | ⚠️ 可能开机不挂载 | ✅ |
+>
+> **原因**：MTK 的硬件编解码依赖 `mtk_sec_heap` + `gz_tz_system` + `cmdq_sec_drv`，
+> GZ 拿不到 EL2 后这条链就断了 ✗
+>
+> ⚠️ **这与基座匹不匹配无关** ✗ —— 同基座补丁一样会出现 ✓
+
+**→ 结论：不要把开 KVM 的机器当主力机** ✓
+> 适合二奶机 / 实验机 / 专门跑虚拟机的机器。
+> 想要两全 → 走 [主线 Linux](docs/06-mainline.md) 路线。
+> 完整实测见 [tee/README.md](tee/README.md)。
 
 ---
 
