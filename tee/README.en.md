@@ -224,6 +224,21 @@ partition, so it is only valid for **the exact base it was built from**.
 | `gz` / `dtbo` / `boot` / `system` | ❌ No | survived an Android 15 → 16 upgrade |
 | Across devices (same model) | ⚠️ **Depends on `tee_b`** | same `tee_b` = same firmware batch = same base |
 
+> 🛑 **The most commonly misread point: successfully flashing "the other device's patch" ≠ cross-base works** ✗
+>
+> People see "device 1 works with its own patch" and conclude "so device 1's patch will work on device 2 too" ✗ — **that inference is wrong** ✓:
+>
+> | | Device 1 | Device 2 |
+> |---|---|---|
+> | Base of device 1's patch (`f1511dca…`) | `f8f286f1…` | `f8f286f1…` |
+> | Its own `tee_a` before flashing | **`f8f286f1…`** | **`a91f5ded…`** |
+> | Verdict | ✅ **same base** (expected to work) | ❌ **cross base** (unverified) |
+>
+> **Device 1's case was same-base flashing from beginning to end** ✓ — it proves that
+> "**same-base works**" ✓, and **cannot be used as evidence that "cross-base works"** ✗.
+> The only genuinely cross-base case is device 2 ⚠️, and even that conclusion is unreliable
+> (see the "mixing them up" section below).
+
 **The most reliable self-check — look at the untouched slot `tee_b`:**
 
 ```bash

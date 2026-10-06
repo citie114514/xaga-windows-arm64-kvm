@@ -326,7 +326,20 @@ Measured (same Redmi Note 11T Pro+, two devices compared):
 |---|---|---|---|
 | Device 1 · stock Android 15 ROM | `f8f286f1…` → flashed to patch `f1511dca…` | `8cbaa2e8…` | ✅ boots + KVM |
 | Device 1 · upgraded to **Android 16** | patch `f1511dca…` (**unchanged**) | **`a17d87c6…` (changed!)** | ✅ **still boots + KVM** |
-| Device 2 · same model, same ROM | updated by the ROM to `a91f5ded…` | `a17d87c6…` | flashing device 1's patch → looked like a boot hang ⚠️ |
+| Device 2 · a **different firmware batch** | updated by the ROM to `a91f5ded…` | `a17d87c6…` | flashing device 1's patch → looked like a boot hang ⚠️ |
+
+> ⚠️ **This table must be read with "same base" vs "cross base" firmly in mind** — it is the
+> easiest thing to misread here:
+>
+> | | Device 1 | Device 2 |
+> |---|---|---|
+> | Base of the patch being flashed | `f8f286f1…` (the rk patch) | `f8f286f1…` (the rk patch) |
+> | Its own `tee_a` before flashing | **`f8f286f1…`** | **`a91f5ded…`** |
+> | Verdict | ✅ **same base** | ❌ **cross base** |
+>
+> **So device 1's success CANNOT be used as evidence that cross-base works** ✗ —
+> it only demonstrates that **same-base works** ✓.
+> **The only genuinely cross-base case is device 2** ⚠️ (and that conclusion is unreliable, see below).
 
 **Conclusion (counter-intuitive, but measured)**:
 
