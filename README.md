@@ -1,5 +1,7 @@
 # 在 Android 手机上跑 Windows 11 ARM64 —— 用真正的 KVM 硬件加速
 
+[中文](README.md) | [**English**](README.en.md)
+
 > Redmi Note 11T Pro / Pro+（MT6895 / Dimensity 8100）实测通过。
 > **不用刷机、不用换系统、留在 Android 里就能玩虚拟机。**
 
@@ -53,11 +55,11 @@ EL2 就交给 Linux 了 → `/dev/kvm` 出现 → QEMU 能用 KVM。
 
 ```mermaid
 graph LR
-    A[tee_a 分区] --> B[atf 成员<br/>跑在 EL2]
-    B -->|换成 NoGZ 补丁版| C[pwnage 签名<br/>过 MTK 证书校验]
-    C -->|dd 刷入| D[SBC 校验通过]
-    D --> E[/dev/kvm 出现]
-    E --> F[QEMU + KVM<br/>跑 Windows 11 ARM64]
+    A["tee_a 分区"] --> B["atf 成员<br/>跑在 EL2"]
+    B -->|"换成 NoGZ 补丁版"| C["pwnage 签名<br/>过 MTK 证书校验"]
+    C -->|"dd 刷入"| D["SBC 校验通过"]
+    D --> E["/dev/kvm 出现"]
+    E --> F["QEMU + KVM<br/>跑 Windows 11 ARM64"]
 ```
 
 **为什么必须签名**：本机实测 `sbc_en = 1`（Secure Boot 开着，值来自 eFuse OTP，改不了），
@@ -153,6 +155,7 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 
 | 文件 | 内容 |
 |---|---|
+| [README.en.md](README.en.md) | **English version of this README**（一句话原理 + 完整三步骤）|
 | [docs/01-enable-kvm.md](docs/01-enable-kvm.md) | **开启 KVM 完整流程**：原理、校验链分析、刷入与验证 |
 | [docs/02-build-and-sign.md](docs/02-build-and-sign.md) | **构建与签名步骤详解**：NoGZ 补丁怎么改、pwnage 怎么签、超分区怎么处理 |
 | [docs/03-windows-vm.md](docs/03-windows-vm.md) | Windows 11 ARM64 磁盘：释放镜像、写引导、绕过 TPM、注入驱动 |
@@ -191,6 +194,15 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 **Q: 能不能用别的 Windows 版本？**
 > 需要 **ARM64** 的 Windows。x64 的在 ARM 上只能软件模拟（极慢），没有意义。
 
+**Q: 刷了 `tee` 会不会影响日用的应用检测（银行 App / Play Integrity / DRM）？**
+> **不会，已实测。** 补丁只改变 **EL2 的归属**，不碰 **TEE**。
+> 实测（未刷 / 已刷 A/B 对照，逐项一致）：KeyMint 硬件密钥证明、Gatekeeper、
+> Widevine/DRM、指纹与人脸、Secure Element **全部正常**。
+>
+> 另外要分清楚：**`verifiedbootstate = orange`（BL 解锁）本来就是 Play Integrity 的杀手**，
+> 跟你刷不刷 `tee` 无关 —— 本来就是不通过的状态，所以刷了也不会变得更差。
+> 完整实测数据见 [tee/README.md](tee/README.md) 的「刷了之后会不会影响应用检测」一节。
+
 ---
 
 ## 致谢
@@ -202,4 +214,8 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 
 ## License
 
-MIT
+本项目**代码、脚本与文档**采用 [MIT 许可证](LICENSE)。
+
+> ⚠️ [`tee/`](tee/) 下的厂商固件镜像（含 MediaTek 与设备厂商的二进制、证书链）
+> **不在 MIT 许可范围内**，仅供在你自有硬件上做互操作性研究使用。
+> 详见 [LICENSE](LICENSE) 末尾的范围说明。

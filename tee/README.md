@@ -1,5 +1,7 @@
 # 成品 tee 镜像
 
+[中文](README.md) | [**English**](README.en.md)
+
 这里是**已经构建并签名好**的 NoGZ 补丁 `tee` 镜像，可直接刷入对应固件的设备。
 
 ---
@@ -74,6 +76,77 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_a bs=4096 2>/dev/null | sha256sum'
 | `f8f286f1…`（原厂基座） | `tee_nogz_rk_5M.img` ✓ |
 | `a91f5ded…` | `tee_nogz_shuilanA15_5M.img` ✓ |
 | 其它 | ✗ **不要刷**，按 [docs/02](../docs/02-build-and-sign.md) 自己构建 |
+
+---
+
+## ❓ 刷了之后会不会影响应用检测？（实测答案：**不会**）
+
+这是刷之前最应该问的问题。我们做了**同设备刷前/刷后 + 两台机 A/B 对照**实测。
+
+**原理上为什么不会影响**：补丁只做一件事 —— **不让 GZ 拿到 EL2**。
+而应用检测依赖的安全能力**全部跑在 TEE（S-EL1）**，和 EL2 是两套独立的东西：
+
+| 安全能力 | 实际承载 | 刷补丁后 |
+|---|---|---|
+| **硬件密钥 / KeyMint 证明** | `keymint@1.0-service.beanpod`（厂商 TEE） | ✅ 正常 |
+| **Gatekeeper**（锁屏密码校验） | TEE | ✅ 正常 |
+| **Widevine / DRM** | `widevine_driver` 挂在 `mtk_sec_heap` 上 | ✅ 正常 |
+| **指纹 / 人脸** | TEE | ✅ 正常 |
+| **Secure Element**（NFC 支付） | `secure_element@1.2-service-mediatek` | ✅ 正常 |
+| **GZ / GenieZone（EL2）** | MediaTek 的 EL2 虚拟化框架 | ⚠️ **失效**（但实测无任何影响）|
+
+### 实测证据
+
+两台设备（**一台未刷 / 一台已刷补丁**）跑完全相同的命令，结果**逐项一致**：
+
+```
+① Verified Boot 状态
+   ro.boot.verifiedbootstate   orange      ← 两台都是 orange（BL 已解锁）
+   ro.boot.flash.locked        0           ← 两台都是 0
+   ro.secure / ro.debuggable   1 / 0       ← 完全相同
+   ro.build.tags               release-keys
+
+② 关键 HAL 服务（两台完全相同）
+   android.hardware.security.keymint.IKeyMintDevice/default               ✓
+   android.hardware.security.keymint.IRemotelyProvisionedComponent/default ✓
+   android.service.gatekeeper.IGateKeeperService                          ✓
+   fingerprint / biometric / auth 服务                                    ✓
+
+③ TEE 是否真的活着（两台完全相同）
+   teei_daemon 及 [teei_*] 内核线程均存在            ← Trustonic TEE 在跑
+   keymint@1.0-service.beanpod 进程在跑
+   android.hardware.secure_element@1.2-service-mediatek 在跑
+   widevine_driver 仍持有 mtk_sec_heap 引用           ← DRM 安全内存路径通
+
+④ 端到端硬件密钥测试（keystore_cli_v2，两台完全相同）
+   generate --seclevel=tee   →  GenerateKey: success
+   get-chars                 →  特征全部落在 "Hardware:" 段，"Software:" 段为空
+   sign-verify               →  Sign: 256 bytes.  Verify: OK
+```
+
+**怎么客观判断 TEE 真的在干活**（而不是退化成软件实现）：
+
+```bash
+# 强制在 TEE 里生成密钥，并看特征归属
+adb shell 'keystore_cli_v2 generate --name=t --seclevel=tee'
+adb shell 'keystore_cli_v2 get-chars --name=t'      # 全部应在 "Hardware:" 下
+adb shell 'keystore_cli_v2 sign-verify --name=t'    # 必须 Verify: OK
+adb shell 'keystore_cli_v2 delete --name=t'
+```
+
+### 两个重要提醒
+
+1. **`verifiedbootstate = orange`（BL 已解锁）本来就是 Play Integrity 的杀手**，
+   跟刷不刷 `tee` **无关**。BL 解锁 + Root 的设备，`MEETS_DEVICE_INTEGRITY` /
+   `MEETS_STRONG_INTEGRITY` **本来就不会通过**，银行 App 本来就靠 Root 隐藏手段去绕。
+   **刷 `tee` 既不改善也不恶化这个状态** —— 它不碰 BL 锁、不碰 Root、不碰 dm-verity。
+
+2. **`gz_*` 内核模块照样会加载**（`lsmod` 看得到 `gz_main_mod` / `gz_irq_mod` /
+   `gz_virtio_mod` 等），但引用计数为 0 —— 它加载了却 **拿不到 EL2，因而是死的**。
+   真正干活的是 TEE，不是 GZ。
+
+> **一句话**：补丁动的是 **EL2 的归属**，不动 **TEE**。
+> 所有“看你是不是真机 / 有没有被改”的检测，看的是 TEE 和 Verified Boot，两者都没变。
 
 ---
 
