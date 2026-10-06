@@ -353,7 +353,8 @@ Measured (same Redmi Note 11T Pro+, two devices compared):
 > evidence**. Later measurements showed that **the first boot after flashing a patch normally hangs
 > at the second screen for nearly 2 minutes** (see item 12). At the time we didn't wait long enough
 > and declared it dead ✗.
-> So "does a cross-base patch work?" should now be recorded as **unverified** ⚠️, not "it will fail" ✗.
+> And the 2026-10-07 experiment on device 1 has settled it: **a cross-base patch boots normally** ✓
+> —— not "it will fail" ✗, not "unverified" ⚠️, but **measured and working** ✓ (see [tee/README.en.md](../tee/README.en.md)).
 > Recommending a patch built for your own base is still correct ✓ — the reason is **TEE OS version
 > matching**, not that it would hang.
 

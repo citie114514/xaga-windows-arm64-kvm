@@ -255,7 +255,7 @@ but because **same-base is more conservative with fewer variables** ✓.
 > |---|---|---|
 > | Base of device 1's patch (`f1511dca…`) | `f8f286f1…` | `f8f286f1…` |
 > | Its own `tee_a` before flashing | **`f8f286f1…`** | **`a91f5ded…`** |
-> | Verdict | ✅ **same base** (expected to work) | ❌ **cross base** (unverified) |
+> | Verdict | ✅ **same base** (expected to work) | ⚠️ **cross base** (measured working ✓, see above) |
 >
 > **Device 1's case was same-base flashing from beginning to end** ✓ — it proves that
 > "**same-base works**" ✓, and **cannot be used as evidence that "cross-base works"** ✗.
