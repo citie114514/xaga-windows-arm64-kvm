@@ -1,5 +1,7 @@
 # preloader_raw_a.img 逆向结论
 
+[**中文**](../appendix-atf-reverse.md) | [English](../en/appendix-atf-reverse.md) | [日本語](../ja/appendix-atf-reverse.md) | [Русский](../ru/appendix-atf-reverse.md)
+
 文件：`D:\Administrator\下载\preloader_raw_a.img`
 大小：4 190 208 字节（0x3FF000）
 sha256：`056ed47a97391139fd3553575a276afbaaa110c103bcf04c97cdc106f1fa68d1`

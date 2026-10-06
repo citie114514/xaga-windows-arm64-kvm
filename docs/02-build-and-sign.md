@@ -1,5 +1,7 @@
 # 构建与签名 —— 步骤详解
 
+[**中文**](../02-build-and-sign.md) | [English](../en/02-build-and-sign.md) | [日本語](../ja/02-build-and-sign.md) | [Русский](../ru/02-build-and-sign.md)
+
 本篇讲清楚：**NoGZ 补丁到底改了什么**、**怎么构建**、**怎么签名**、**怎么验**。
 
 > 工具是 [`mtk-mod-tee-nogz`](https://github.com/MT6895-Mainline/mtk-mod-tee-nogz)（上游），

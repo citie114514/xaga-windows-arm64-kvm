@@ -1,5 +1,7 @@
 # xagapro (Redmi Note 11T Pro+) 走 MTK NoGZ → KVM 可行性报告
 
+[**中文**](../appendix-early-report.md) | [English](../en/appendix-early-report.md) | [日本語](../ja/appendix-early-report.md) | [Русский](../ru/appendix-early-report.md)
+
 日期：2026-10-04
 设备：`192.168.31.75:33445`（备用机，**未刷任何东西**，全程只读）
 状态：**离线验证全部通过，等待决定是否实机写入**

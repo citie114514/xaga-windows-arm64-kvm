@@ -1,5 +1,7 @@
 # 坑清单
 
+[**中文**](../05-gotchas.md) | [English](../en/05-gotchas.md) | [日本語](../ja/05-gotchas.md) | [Русский](../ru/05-gotchas.md)
+
 全部是我们在 Redmi Note 11T Pro+ 上**实际踩过**的坑。按"杀伤力"排序。
 
 ---
