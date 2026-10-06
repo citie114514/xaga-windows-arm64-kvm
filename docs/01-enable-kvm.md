@@ -5,6 +5,19 @@
 > 目标：让 Android 上出现 `/dev/kvm`，从而让 QEMU 用上硬件加速（而不是慢到无法使用的 TCG 软件模拟）。
 
 **前提**：Bootloader 已解锁 + 已 Root（KernelSU/Magisk）+ PC 有 adb 和 Python 3.10+。
+
+> ⭐ **还有一个之前没写清楚的前提：【先把工程 preloader 刷上】** ✓
+> 原厂 preloader 的 EDL 需要小米售后账号授权 ✗ —— 也就是**刷错 tee 之后你没有免授权的退路** ✗。
+> 工程 preloader 让 `usbdl_verify_da` 的返回值失效，SLA/DAA 形同虚设，
+> 才能用 SP Flash / mtkclient **免账号**写入 ✓。
+> ```bash
+> fastboot flash preloader1 preloader_xaga.bin
+> fastboot flash preloader2 preloader_xaga.bin   # by-name: preloader_raw_a / preloader_raw_b
+> fastboot reboot
+> ```
+> ⚠️ 它**只让写入免授权**，**不会关掉启动时的镜像校验** ✗ —— `sbc_en` 仍为 1，
+> 所以“改了 ATF 就必须签名”这一点不变 ✓
+
 **形态**：只改 `tee_a`，`tee_b` 保持原厂（天然兜底）。
 
 ---

@@ -2,14 +2,16 @@
 
 [**中文**](README.md) | [English](README.en.md) | [日本語](README.ja.md) | [Русский](README.ru.md)
 
-> Redmi Note 11T Pro / Pro+（MT6895 / Dimensity 8100）实测通过。
+> Redmi Note 11T Pro+ / **Redmi K50i**（MT6895 / Dimensity 8100）实测通过。
+> 同 SoC 家族的 **Redmi Note 11T Pro / POCO X4 GT**（代号 `xaga`）原理完全相同，但固件不同，
+> 需要各自的 profile（可以先备份后试成品 —— 跨基座已实测可启动）。
 > **不用刷机、不用换系统、留在 Android 里就能玩虚拟机。**
 
 ![Windows 11 ARM64 桌面](images/final-1080.png)
 
 ---
 
-## ⚠️ 开始之前必须知道的两件事
+## ⚠️ 开始之前必须知道的**三**件事
 
 ### 1. 需要 Root（不可绕过）
 
@@ -30,9 +32,46 @@
 
 - **务必先备份原厂 `tee_a`**（一键脚本会强制备份，没备份就中止）
 - **只改 `tee_a`，`tee_b` 保持原厂** —— 切到 B 槽就回到没 KVM 的状态，是天然兜底
-- **不要用 SP Flash 深刷**（会把 BL 重新锁上）
-- 刷坏了还能走 **preloader 模式**（免授权）救砖
+- **不要用 SP Flash 深刷 `tee`**（会把 BL 重新锁上，后续 fastboot 就不方便了）
 - **一切后果自负**
+
+### 3. ⭐ 试 `tee` 之前，先把【工程 preloader】刷上 —— 这是唯一的免授权救砖路径
+
+**这一点比备份还重要** ✗：
+
+```
+原厂 preloader ⇒ EDL 需要小米售后账号授权 ✗
+              ⇒ tee 刷错、设备起不来时，你没有免授权的救援通道 ✗
+
+工程 preloader ⇒ usbdl_verify_da 的返回值被直接丢弃
+              ⇒ SLA / DAA 校验形同虚设
+              ⇒ 可以用 SP Flash / mtkclient【免账号】写入 ✓
+              ⇒ 这才是“刷坏了还能救”的前提 ✓
+```
+
+**刷工程 preloader（fastboot 即可，比刷 tee 简单得多）**：
+
+```bash
+fastboot flash preloader1 preloader_xaga.bin
+fastboot flash preloader2 preloader_xaga.bin
+fastboot reboot
+```
+
+（本机 by-name 里对应 `preloader_raw_a` / `preloader_raw_b`）
+
+> ⚠️ **工程 preloader 只让“写入”免授权，不会关掉“启动时的镜像校验”** ✗
+> `sbc_en` 仍然从 eFuse 读、实测值仍然是 **1**，ATF 每个启动都还在被校验 ✓
+> 所以**改了 ATF 就必须签名**这一点不变 —— 详见 [docs/05](docs/05-gotchas.md) 与
+> [appendix-atf-reverse](docs/appendix-atf-reverse.md)
+
+**→ 推荐的完整顺序**：
+
+```
+① 确认可以刷入工程 preloader（手里有文件 + 能用 fastboot / SP Flash）
+② 刷入工程 preloader 并验证能正常开机
+③ 备份 tee_a / tee_b / lk_a / lk_b / preloader_raw_a / seccfg
+④ 再用本项目的成品 tee 去试
+```
 
 ---
 

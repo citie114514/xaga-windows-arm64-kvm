@@ -6,6 +6,54 @@
 
 ---
 
+# 🛑 试用前必读（两条）
+
+## ① 先把【工程 preloader】刷上 —— 否则你可能没路可退
+
+```
+原厂 preloader ⇒ EDL 需要小米售后账号授权 ✗
+              ⇒ tee 刷错、起不来时【没有免授权的救援通道】✗
+
+工程 preloader ⇒ usbdl_verify_da 返回值被丢弃 → SLA/DAA 形同虚设
+              ⇒ SP Flash / mtkclient 【免账号】可写 ✓
+              ⇒ 这才是“刷坏了还能救”的前提 ✓
+```
+
+```bash
+fastboot flash preloader1 preloader_xaga.bin
+fastboot flash preloader2 preloader_xaga.bin
+fastboot reboot
+```
+
+（by-name 里对应 `preloader_raw_a` / `preloader_raw_b`）
+
+> ⚠️ 工程 preloader **只让写入免授权**，**不会关掉启动时的镜像校验** ✗ ——
+> `sbc_en` 仍为 1，ATF 每个启动都在被校验（详见 [../docs/05-gotchas.md](../docs/05-gotchas.md)）
+
+## ② 本项目的 tee 适用于哪些机型
+
+| 代号 | 市场名称 | 本项目适配 |
+|---|---|---|
+| **`xagapro`** | **Redmi Note 11T Pro+** / **Redmi K50i** | ✅ **本项目实测机**（两个成品都出自这里）|
+| `xaga` | **Redmi Note 11T Pro** / **POCO X4 GT** | ⚠️ 固件不同，需要自己的 profile；但**跨基座实测可启动**，可先备份后试 |
+
+两者同为 **MT6895 / Dimensity 8100**，原理完全一致，差别只在固件基座。
+
+---
+
+## 👉 想直接拿成品试？按这个顺序
+
+```
+① 确认能刷入工程 preloader（手里有文件、fastboot / SP Flash 能用）
+② 刷入并验证能正常开机
+③ 备份：tee_a / tee_b / lk_a / lk_b / preloader_raw_a / seccfg
+④ 跑 tee/verify.sh 看自己设备该用哪个成品
+⑤ 刷入成品 → 重启 → 【给它 3 分钟】（每次开机都会卡第二屏 1~2 分钟，不是变砖）
+⑥ 验证：adb shell su -c 'ls -l /dev/kvm'
+```
+
+---
+
 # ⭐ 实机验证成功的示例
 
 ## [`tee_nogz_rk_5M.img`](tee_nogz_rk_5M.img) —— **已在真机上跑通 KVM**
