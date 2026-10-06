@@ -76,6 +76,40 @@ hardware, but you need to understand the following:
 
 ---
 
+## 🎁 Don't want to build it yourself? Use a prebuilt image
+
+The repository ships **already built and signed** `tee` images that can be flashed directly —
+including **an example confirmed working on real hardware**:
+
+| File | Compatible base (your `tee_a`) | Verified on hardware |
+|---|---|---|
+| [`tee/tee_nogz_rk_5M.img`](tee/tee_nogz_rk_5M.img) | `f8f286f1…` (stock) | ✅ **working** (confirmed twice, across Android 15 → 16) |
+| [`tee/tee_nogz_shuilanA15_5M.img`](tee/tee_nogz_shuilanA15_5M.img) | `a91f5ded…` (after a ROM update) | ✅ **working** (measured 2026-10-06) |
+
+**Run the self-check before flashing** — it tells you which one fits (or that you must build your own):
+
+```bash
+bash tee/verify.sh                 # auto-detects a connected device
+bash tee/verify.sh <serial>        # or name one explicitly
+```
+
+It prints your device's `tee_a` / `tee_b` and distinguishes three states: **not patched / already
+patched / you need to build your own**.
+
+> ⚠️ **A patch is bound to one `tee` base**: changes to `lk`, `gz`, `dtbo`, `boot` or `system` don't
+> matter — **only a changed `tee` base breaks it** (a ROM/OTA can change it behind your back).
+>
+> ⚠️ **The first boot after flashing hangs at the second screen for about 2 minutes** before reaching
+> the system — that is normal, **not a brick, just wait**. Do not rush into fastboot; that interrupts
+> the boot.
+>
+> ⚠️ **Does flashing affect everyday app integrity checks (banking apps / Play Integrity / DRM)?
+> Measured answer: no** — the patch only changes who owns EL2 and never touches the TEE. Full
+> measurements, the base-compatibility table and the rollback procedure are in
+> [`tee/README.en.md`](tee/README.en.md).
+
+---
+
 ## Quick start
 
 ### Step 1 — Enable KVM (one script)
