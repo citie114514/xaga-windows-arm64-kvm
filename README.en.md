@@ -99,7 +99,7 @@ patched / you need to build your own**.
 > ⚠️ **A patch is bound to one `tee` base**: changes to `lk`, `gz`, `dtbo`, `boot` or `system` don't
 > matter — **only a changed `tee` base breaks it** (a ROM/OTA can change it behind your back).
 >
-> ⚠️ **The first boot after flashing hangs at the second screen for about 2 minutes** before reaching
+> ⚠️ **Every boot after flashing hangs at the second screen for about 1–2 minutes** before reaching
 > the system — that is normal, **not a brick, just wait**. Do not rush into fastboot; that interrupts
 > the boot.
 >
@@ -152,7 +152,7 @@ adb shell su -c 'ls -l /dev/kvm'
 adb shell su -c 'cat /proc/misc | grep kvm'
 ```
 
-> ### ⚠️ The first boot after flashing hangs at the second screen for ~2 minutes — that is NOT a brick
+> ### ⚠️ **Every boot after flashing** hangs at the second screen for 1–2 minutes — that is NOT a brick
 >
 > Measured: **150 seconds** from reboot to `sys.boot_completed=1`, with 120 seconds of a
 > completely static screen in between. Afterwards `/dev/kvm` shows up normally ✓
@@ -169,8 +169,8 @@ adb shell su -c 'cat /proc/misc | grep kvm'
 > [`tee/`](tee/) with the exact base-firmware hash each one targets — and
 > `bash tee/verify.sh` tells you which one (if any) is safe for your device.
 > **A patch is bound to one `tee` base — use the one built for yours.**
-> ⚠️ Also note: **the first boot after flashing a patch hangs at the second screen for about
-> 2 minutes** — that is normal, not a brick. Don't rush into fastboot.
+> ⚠️ Also note: **every boot after flashing a patch hangs at the second screen for about
+> 1–2 minutes** — that is normal, not a brick. Don't rush into fastboot.
 
 ### Step 2 — Build a Windows 11 ARM64 disk (one script)
 

@@ -390,11 +390,14 @@ a built-in fallback).
 
 ---
 
-## 12. 🔴 **The first boot after flashing hangs at the second screen for ~2 minutes — that is not a brick!**
+## 12. 🔴 **Every boot after flashing hangs at the second screen for 1–2 minutes — that is not a brick!**
 
 **Symptom**
-After flashing the NoGZ patch and rebooting, the phone sits at the **second boot screen** (logo2 /
-spinner) with **no change for 1–2 minutes** ✗ — it looks exactly like a brick.
+After flashing the NoGZ patch, **every** boot stops at the **second boot screen** (logo2 / spinner)
+with **no change for 1–2 minutes** ✗ — it looks exactly like a brick.
+
+> ⚠️ **Every boot, not just the first one** ✗ — reported from real use: after flashing, this happens on
+every boot.
 
 **But it is normal** ✓ — measured (device 2, `tee_a` flashed to `17ec8497…`, then rebooted):
 
@@ -420,7 +423,8 @@ response from GZ**, times out, and then continues — hence "stuck but not dead"
   cannot start ✗
 - Only if there is **no change after 5 minutes** should you suspect a patch from the wrong base ✗
 
-**After the first boot, subsequent boots are normal** ✓ (that handshake timeout is gone).
+**This is not a one-off** — as long as the patch is in place, every boot goes through this wait ✓
+(think of it as: GZ never gets EL2, so the boot chain has to wait out that handshake timeout each time).
 
 ### Telling "normal slow" apart from "really broken"
 
