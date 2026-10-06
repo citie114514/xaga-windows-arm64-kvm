@@ -1,6 +1,6 @@
 # 成品 tee 镜像
 
-[中文](README.md) | [**English**](README.en.md)
+[**中文**](README.md) | [English](README.en.md) | [日本語](README.ja.md) | [Русский](README.ru.md)
 
 这里是**已经构建并签名好**的 NoGZ 补丁 `tee` 镜像，可直接刷入对应固件的设备。
 

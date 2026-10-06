@@ -1,6 +1,6 @@
 # Prebuilt `tee` Images
 
-**English** | [中文](README.md)
+[中文](README.md) | **English** | [日本語](README.ja.md) | [Русский](README.ru.md)
 
 Signed NoGZ-patched `tee` partition images, ready to flash onto a device whose firmware
 matches the base they were built from.
