@@ -1,5 +1,7 @@
 # 为新固件定位 profile 的工具
 
+[**中文**](README.md) | [English](README.en.md) | [日本語](README.ja.md) | [Русский](README.ru.md)
+
 给已有 profile、但换了固件批次的设备**重新定位偏移**用的。
 方法核心：**不移位硬猜，而是用旧 profile 已知位置处的"指令骨架"去新二进制里搜**。
 

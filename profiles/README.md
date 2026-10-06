@@ -1,5 +1,7 @@
 # 固件 profile
 
+[**中文**](README.md) | [English](README.en.md) | [日本語](README.ja.md) | [Русский](README.ru.md)
+
 `mtk-mod-tee-nogz` 靠 **profile** 定位 ATF/LK 里需要打补丁的位置。
 profile 用 **完整文件 SHA-256** 匹配输入，所以是"精确固件样本"级别的工具 ——
 **同型号不同固件批次，profile 就不通用**。
