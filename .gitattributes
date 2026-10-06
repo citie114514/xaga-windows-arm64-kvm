@@ -1,3 +1,10 @@
+# 全仓库统一 LF（Windows 上 git 也不会自动转成 CRLF）
 * text=auto eol=lf
+
+# 二进制文件不做任何换行/文本转换
 *.png binary
 *.jpg binary
+*.img binary
+*.iso binary
+*.vhdx binary
+*.zip binary
