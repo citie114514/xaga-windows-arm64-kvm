@@ -1,5 +1,7 @@
 # 手机端脚本
 
+[**中文**](README.md) | [English](README.en.md) | [日本語](README.ja.md) | [Русский](README.ru.md)
+
 推到手机 ` /data/local/tmp/` 下运行。**全部需要 root。**
 
 | 脚本 | 作用 | 实测 |
