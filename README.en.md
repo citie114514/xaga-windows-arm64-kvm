@@ -1,6 +1,6 @@
 # Windows 11 ARM64 on an Android Phone — with Real KVM Hardware Acceleration
 
-**English** | [中文](README.md)
+[中文](README.md) | **English** | [日本語](README.ja.md) | [Русский](README.ru.md)
 
 > Verified on Redmi Note 11T Pro / Pro+ (MT6895 / Dimensity 8100).
 > **No custom ROM, no reflashing your daily system — stay on Android and still run VMs.**
@@ -190,11 +190,14 @@ that is the least painful path.
 
 | Path | Contents |
 |---|---|
+| [README.md](README.md) | Chinese version of this README |
+| [README.ja.md](README.ja.md) | Japanese version of this README |
+| [README.ru.md](README.ru.md) | Russian version of this README |
 | [docs/01-enable-kvm.md](docs/01-enable-kvm.md) | **Full KVM enablement**: the principle, verification-chain analysis, flashing and validation |
 | [docs/02-build-and-sign.md](docs/02-build-and-sign.md) | **Build & signing walkthrough**: what the NoGZ patch changes, how pwnage signs, handling oversized images |
 | [docs/03-windows-vm.md](docs/03-windows-vm.md) | The Windows 11 ARM64 disk: applying the image, writing boot files, bypassing TPM, injecting drivers |
 | [docs/04-usage.md](docs/04-usage.md) | **Usage**: every QEMU flag explained, VNC, networking, performance tuning |
-| [docs/05-gotchas.md](docs/05-gotchas.md) | **Gotcha list** — every trap we actually hit |
+| [docs/05-gotchas.md](docs/05-gotchas.md) | **Gotcha list** (12 entries) — every trap we actually hit |
 | [docs/06-mainline.md](docs/06-mainline.md) | Going further: mainline Linux + KDE on the same device |
 | [tee/](tee/) | **Prebuilt signed `tee` images** + the base-firmware compatibility table + `verify.sh` |
 | [profiles/](profiles/) | Firmware profiles (ATF/LK offset definitions) |

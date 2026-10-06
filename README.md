@@ -1,6 +1,6 @@
 # 在 Android 手机上跑 Windows 11 ARM64 —— 用真正的 KVM 硬件加速
 
-[中文](README.md) | [**English**](README.en.md)
+[**中文**](README.md) | [English](README.en.md) | [日本語](README.ja.md) | [Русский](README.ru.md)
 
 > Redmi Note 11T Pro / Pro+（MT6895 / Dimensity 8100）实测通过。
 > **不用刷机、不用换系统、留在 Android 里就能玩虚拟机。**
@@ -167,11 +167,13 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | 文件 | 内容 |
 |---|---|
 | [README.en.md](README.en.md) | **English version of this README**（一句话原理 + 完整三步骤）|
+| [README.ja.md](README.ja.md) | 日本語版 README |
+| [README.ru.md](README.ru.md) | Русская версия README |
 | [docs/01-enable-kvm.md](docs/01-enable-kvm.md) | **开启 KVM 完整流程**：原理、校验链分析、刷入与验证 |
 | [docs/02-build-and-sign.md](docs/02-build-and-sign.md) | **构建与签名步骤详解**：NoGZ 补丁怎么改、pwnage 怎么签、超分区怎么处理 |
 | [docs/03-windows-vm.md](docs/03-windows-vm.md) | Windows 11 ARM64 磁盘：释放镜像、写引导、绕过 TPM、注入驱动 |
 | [docs/04-usage.md](docs/04-usage.md) | **使用方法**：QEMU 参数逐条说明、VNC、网络、性能调优 |
-| [docs/05-gotchas.md](docs/05-gotchas.md) | **坑清单**（10 条，全是我们踩过的） |
+| [docs/05-gotchas.md](docs/05-gotchas.md) | **坑清单**（12 条，全是我们踩过的）| |
 | [docs/06-mainline.md](docs/06-mainline.md) | 进阶：换主线 Linux + KDE 的路线 |
 | [tee/](tee/) | **成品 tee 镜像**（已签名，可直接刷）+ 适配基座对照表 |
 | [profiles/](profiles/) | 固件 profile（ATF/LK 偏移定义）|
