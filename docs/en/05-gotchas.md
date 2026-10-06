@@ -434,6 +434,33 @@ response from GZ**, times out, and then continues — hence "stuck but not dead"
 > 💡 Lesson: this project once wasted a recovery because it didn't wait long enough and treated
 > this as a real brick. **After flashing, give the first boot 3 minutes.**
 
+### 🔑 Why "hangs at the second screen" is a key diagnostic
+
+ATF signature verification happens during the **`bl2_ext` stage** (the preloader stage, **long before
+the kernel starts**):
+
+```
+ATF verification ([SBC] image atf header auth pass)
+    | happens before the kernel
+kernel starts -> first screen -> second screen
+```
+
+**Therefore:**
+
+```
+Never reaches the second screen (stuck on the first / falls into fastboot)
+    => might be "not accepted" -- signature / base / a corrupted partition write
+
+Reaches the second screen (logo2)
+    => ATF was definitely accepted ✓
+    => the problem is definitely NOT the signature and NOT the base, but the boot process afterwards
+       (i.e. the delay, or TEE initialisation)
+```
+
+> This diagnostic is **free**: no logs, no PC — **the screen alone tells you** ✓
+> It is also how this project later confirmed that "that boot hang was really just not waiting
+> long enough" ✓
+
 ---
 
 ## Appendix: things that look like traps but aren't
