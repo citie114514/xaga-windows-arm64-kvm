@@ -30,9 +30,15 @@
 > | ✅ **或者** | 接受“硬件视频解码不可用”这个代价 |
 > | ✅ **想要两全** | 走 [主线 Linux](docs/06-mainline.md) 路线 |
 >
-> **原因**：MTK 的硬件编解码依赖 `mtk_sec_heap` + `gz_tz_system` + `cmdq_sec_drv`，
-> GZ 拿不到 EL2 后这条链就断了 ✗
+> **精确机理**：MTK 的 venc / vdec 在 `open()` 时要用 **IPI 向 VCP 协处理器查“支持的帧尺寸”**，
+> 而 VCP 的 **READY 握手依赖 EL2 / 安全世界那条链**；
+> 把 Android 内核抬到 EL2（KVM 的必需条件）后握手就断了
+> → 尺寸表为空 → Codec2 的 `configure()` 返回 `EINVAL`
+> → 而且**框架/应用不会自动回退软编** ✗ → `screenrecord` 录出 0 字节 ✗
+> （`/dev/vdec-fmt` 这个节点就是那张帧尺寸表 ✓；软编不走 VCP 所以不受影响 ✓）
+>
 > ⚠️ **这与基座匹不匹配无关** ✗ —— 同基座补丁一样会出现 ✓
+> **只要 KVM 在，硬件编解码就不可用 —— 这是 tee 补丁的固有代价，无法规避** ✗
 >
 > 完整实测与回退方法：[docs/05-gotchas.md 第 14 条](docs/05-gotchas.md)
 

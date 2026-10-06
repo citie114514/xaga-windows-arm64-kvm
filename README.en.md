@@ -31,9 +31,15 @@
 > | ✅ **Or** | accept "hardware video decode unavailable" |
 > | ✅ **Want both** | go the [mainline Linux](docs/06-mainline.md) route |
 >
-> **Why**: MediaTek's hardware codec depends on `mtk_sec_heap` + `gz_tz_system` + `cmdq_sec_drv`;
-> once GZ can't get EL2 that chain breaks ✗
-> ⚠️ **This has nothing to do with base matching** ✗ — a same-base patch does it too ✓
+> **Precise mechanism**: MTK's venc / vdec, when `open()`ed, use an **IPI to the VCP co-processor to query the
+> "supported frame sizes"**, and the VCP's **READY handshake depends on the EL2 / secure-world chain**.
+> Raising the Android kernel to EL2 (which KVM requires) breaks that handshake
+> → the size table comes back empty → Codec2's `configure()` returns `EINVAL`
+> → and **the framework/apps do NOT fall back to software encoding** ✗ → `screenrecord` produces a 0-byte file ✗
+> (the `/dev/vdec-fmt` node *is* that frame-size table; software codecs don't go through VCP so they're unaffected)
+>
+> ⚠️ **This is unrelated to base matching** ✗ — a same-base patch does it too ✓
+> **As long as KVM is present, hardware codecs are unusable — this is the inherent, unavoidable cost of the tee patch** ✗
 >
 > Full measurements and rollback: [docs/05-gotchas.md item 14](docs/05-gotchas.md)
 

@@ -155,6 +155,35 @@ The NoGZ patch stops GZ from getting EL2  ->  that dependency chain breaks ✗
    ->  Moonlight / UU Remote / QQ images / thumbnail generation  all affected ✗
 ```
 
+**Precise mechanism** (why it is specifically *hardware* codecs that break):
+
+```
+MTK's venc / vdec, when open()ed:
+   -> use an IPI to the VCP co-processor to query the "supported frame sizes"
+   -> and the VCP's READY handshake depends on the EL2 / secure-world chain
+
+After the Android kernel is raised to EL2 (which KVM requires):
+   -> the handshake breaks
+   -> the size table comes back empty
+   -> Codec2's configure() returns EINVAL
+   -> the framework / apps DO NOT fall back to software encoding
+   -> result: screenrecord produces 0-byte files,
+              and Moonlight / UU Remote / QQ images all fail
+```
+
+**This explains four things**:
+
+| Observation | Explanation |
+|---|---|
+| Why it is specifically **hardware** codecs that break | software codecs don't go through VCP, so they're unaffected |
+| Why the failure is at the **configure** stage | the size-table query happens right there |
+| Why apps **don't degrade gracefully** | they get `EINVAL` and simply give up; they never switch to software |
+| Why the `/dev/vdec-fmt` node exists | that node *is* the frame-size table |
+
+> **So: as long as KVM is present, hardware codecs are unusable.**
+> **This is the inherent cost of the tee patch and cannot be avoided** — it is not a config or base issue.
+
+
 **Note: this has NOTHING to do with whether the base matches** ✗ — a same-base patch does it too,
 because it is the cost of **NoGZ killing GZ** itself ✓
 
