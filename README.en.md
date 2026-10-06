@@ -2,7 +2,10 @@
 
 [中文](README.md) | **English** | [日本語](README.ja.md) | [Русский](README.ru.md)
 
-> Verified on Redmi Note 11T Pro / Pro+ (MT6895 / Dimensity 8100).
+> Verified on Redmi Note 11T Pro+ / **Redmi K50i** (MT6895 / Dimensity 8100).
+> The **Redmi Note 11T Pro / POCO X4 GT** (codename `xaga`) in the same SoC family works on exactly the
+> same principle, but its firmware differs so it needs its own profile (you can back up and try the
+> prebuilt images first — cross-base has been measured to boot).
 > **No custom ROM, no reflashing your daily system — stay on Android and still run VMs.**
 
 ![Windows 11 ARM64 desktop](images/final-1080.png)
@@ -34,7 +37,7 @@ vulnerability**. See [docs/01](docs/en/01-enable-kvm.md) and
 
 ---
 
-## ⚠️ Two things you must know before starting
+## ⚠️ Three things you must know before starting
 
 ### 1. Root is required (there is no way around it)
 
@@ -59,9 +62,46 @@ hardware, but you need to understand the following:
   aborts if it cannot back up)
 - **Only `tee_a` is modified; `tee_b` stays stock** — switching to slot B returns you
   to a no-KVM state, a built-in fallback
-- **Do not use SP Flash Tool for a full flash** (it re-locks the bootloader)
-- If you do brick it, **preloader mode** (no auth required) can still recover it
+- **Do not use SP Flash Tool for a full flash of `tee`** (it re-locks the bootloader)
 - **You are responsible for the consequences**
+
+### 3. ⭐ Before trying a `tee` patch, flash the **engineering preloader** — your only no-auth recovery path
+
+**This matters more than the backup** ✗:
+
+```
+Stock preloader       => EDL requires a Xiaomi after-sales account authorisation ✗
+                      => if the tee is wrong and the device won't boot, you have NO no-auth rescue ✗
+
+Engineering preloader => usbdl_verify_da's return value is discarded
+                      => SLA / DAA checks effectively bypassed
+                      => SP Flash / mtkclient can write WITHOUT an account ✓
+                      => this is the actual precondition for "if it breaks you can still recover" ✓
+```
+
+**Flashing the engineering preloader (fastboot is enough — far simpler than flashing `tee`):**
+
+```bash
+fastboot flash preloader1 preloader_xaga.bin
+fastboot flash preloader2 preloader_xaga.bin
+fastboot reboot
+```
+
+(On this device those are the by-name partitions `preloader_raw_a` / `preloader_raw_b`.)
+
+> ⚠️ **The engineering preloader only removes auth for WRITING — it does NOT disable image verification
+> at boot** ✗. `sbc_en` is still read from eFuse and is still **1**, and ATF is still verified on every
+> boot ✓ So "a modified ATF must be signed" is unchanged — see [docs/05](docs/05-gotchas.md) and
+> [appendix-atf-reverse](docs/appendix-atf-reverse.md).
+
+**→ The recommended full order**:
+
+```
+1) Confirm you can flash the engineering preloader (you have the file + fastboot / SP Flash works)
+2) Flash it and verify the device still boots normally
+3) Back up tee_a / tee_b / lk_a / lk_b / preloader_raw_a / seccfg
+4) Only then try this project's prebuilt tee
+```
 
 ---
 

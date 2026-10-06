@@ -7,6 +7,55 @@ matches the base they were built from.
 
 ---
 
+# 🛑 Read this before trying them
+
+## (1) Flash the **engineering preloader** first — otherwise you may have no way back
+
+```
+Stock preloader       => EDL requires a Xiaomi after-sales account authorisation ✗
+                      => if the tee is wrong and it won't boot, you have NO no-auth rescue ✗
+
+Engineering preloader => usbdl_verify_da's return value is discarded, so SLA/DAA are bypassed
+                      => SP Flash / mtkclient can write WITHOUT an account ✓
+                      => this is the actual precondition for "if it breaks you can recover" ✓
+```
+
+```bash
+fastboot flash preloader1 preloader_xaga.bin
+fastboot flash preloader2 preloader_xaga.bin
+fastboot reboot
+```
+
+(by-name partitions `preloader_raw_a` / `preloader_raw_b`)
+
+> ⚠️ The engineering preloader **only removes auth for writing**; it does **NOT** disable image
+> verification at boot ✗ — `sbc_en` is still 1 and ATF is still verified every boot
+> (see [../docs/05-gotchas.md](../docs/05-gotchas.md)).
+
+## (2) Which devices these images fit
+
+| Codename | Market names | This project |
+|---|---|---|
+| **`xagapro`** | **Redmi Note 11T Pro+** / **Redmi K50i** | ✅ **The device measured here** (both prebuilt images came from it) |
+| `xaga` | **Redmi Note 11T Pro** / **POCO X4 GT** | ⚠️ Different firmware, needs its own profile — but **cross-base has been measured to boot**, so you may back up and try |
+
+Both are **MT6895 / Dimensity 8100**; the principle is identical and only the firmware base differs.
+
+---
+
+## 👉 Want to just try a prebuilt image? Follow this order
+
+```
+1) Confirm you can flash the engineering preloader (you have the file; fastboot / SP Flash works)
+2) Flash it and verify the device boots normally
+3) Back up: tee_a / tee_b / lk_a / lk_b / preloader_raw_a / seccfg
+4) Run tee/verify.sh to see which prebuilt fits your device
+5) Flash it -> reboot -> 【give it 3 minutes】 (every boot stops at the second screen for 1-2 minutes; not a brick)
+6) Verify: adb shell su -c 'ls -l /dev/kvm'
+```
+
+---
+
 ## ⭐ The verified example
 
 ### [`tee_nogz_rk_5M.img`](tee_nogz_rk_5M.img) — **KVM confirmed working on real hardware**
