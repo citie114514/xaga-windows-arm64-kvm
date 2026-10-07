@@ -189,7 +189,7 @@ Set-Date -Date "2026-10-06 03:20:00"
 
 ---
 
-## 8. 🟠 DroidVM 的配置体系：三个必须分清的事
+## 8. 🟠 DroidVM 的配置体系：四个必须分清的事
 
 DroidVM 应用和 QEMU 命令行是**两套互不相通的启动方式**。混着用必踩坑。
 
@@ -240,12 +240,43 @@ DroidVM 用自己严格的 schema 校验，**不认识手加的字段**，就把
   ```
 - **改之前先备份** `cp vms.json vms.json.bak`
 
+### (d) 应用「手动创建」的虚拟机直接启动报 pflash 尺寸错误 ✗
+
+**症状**（应用图形化界面手动建 VM，启动即报）：
+
+```
+cfi.pflash01 device '/machine/virt.flash0' requires 67108864 bytes,
+pflash0 block backend provides 786432 bytes
+```
+
+（前面伴随的 `QEMU waiting for connection on: ...uart.sock` 是正常等待，不是错误）
+
+**原因**：手动创建的 VM 配置用 **`-pflash`**（而不是命令行路线的 `-bios`）加载固件。
+ARM `virt` 机器的 flash0 设备是 **64 MiB**，而 DroidVM 自带的 `aavmf-QEMU_EFI.fd`
+只有 **768 KiB** —— `cfi.pflash01` 要求后端文件与设备尺寸**完全一致**，直接拒绝。
+
+命令行路线（`boot-win.sh`）**不受影响**：`-bios` 由 QEMU 自己把固件放进 flash，不检查尺寸。
+
+**修复思路**（QEMU/edk2 官方文档的标准做法：把固件补零到正好 64 MiB）：
+
+```bash
+adb shell su -c 'cp /data/data/cn.classfun.droidvm/usr/share/droidvm/aavmf-QEMU_EFI.fd /data/local/tmp/flash0.img'
+adb shell su -c 'truncate -s 67108864 /data/local/tmp/flash0.img'   # 768 KiB → 64 MiB
+```
+
+然后在应用里把固件换成这个补零后的文件。
+
+> ⚠️ **未实机验证** —— 而且就算过了这关，手动创建的配置仍然缺 `-netdev` / balloon（见 (a)），
+> 需要配合 `qemu-wrapper.sh` 补齐（wrapper 只在调用方没给时补，不干扰其他参数）。
+> **「图形化 GUI + wrapper」理论上可以完整跑起来，但我们还没有验证过** ——
+> 如果你试通了，欢迎提 issue 反馈。在此之前，命令行路线仍是唯一经过实测的方法。
+
 ### 结论：二选一，别混
 
 | 路线 | 优点 | 缺点 |
 |---|---|---|
 | **`boot-win.sh` 命令行**（推荐） | 参数完全可控、端口固定 5900、不看应用脸色 | 没有图形界面，改参数要编辑脚本 |
-| **DroidVM 应用启动** | 有界面、能管多台 | 参数不全（要 wrapper 补）、端口随机、配置不能手改 |
+| **DroidVM 应用启动** | 有界面、能管多台 | 固件要补零到 64 MiB（见 (d)）、参数不全（要 wrapper 补）、端口随机、配置不能手改 |
 
 > 两者**不要同时用**：应用启动会重写 `vms.json`，命令行启动完全不碰它。
 

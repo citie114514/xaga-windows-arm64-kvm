@@ -73,7 +73,7 @@ adb shell su -c 'cd /data/data/cn.classfun.droidvm/usr/bin && \
 
 ---
 
-# ⚠️ DroidVM 应用的三个坑
+# ⚠️ DroidVM 应用的四个坑
 
 ## 1. VNC 端口默认是**随机的**
 
@@ -110,4 +110,27 @@ adb shell su -c 'cd /data/data/cn.classfun.droidvm/usr/bin && \
   ```
 - **改之前先备份**：`cp vms.json vms.json.bak`
 
-> 更多坑见 [docs/05-gotchas.md](../../docs/05-gotchas.md)（第 2、9 条）。
+## 4. 「手动创建」的 VM 直接启动报 pflash 尺寸错误
+
+**症状**：应用里手动建 VM，启动即报：
+
+```
+cfi.pflash01 device '/machine/virt.flash0' requires 67108864 bytes,
+pflash0 block backend provides 786432 bytes
+```
+
+**原因**：手动创建的配置用 **`-pflash`** 加载固件（命令行路线用 `-bios`，无此问题）。
+ARM `virt` 机器的 flash0 是 **64 MiB**，而 DroidVM 自带的 `aavmf-QEMU_EFI.fd`
+只有 **768 KiB** —— `cfi.pflash01` 要求后端与设备尺寸完全一致。
+
+**修复思路（未实机验证）**：补零到 64 MiB 后在应用里选这个文件：
+
+```bash
+adb shell su -c 'cp /data/data/cn.classfun.droidvm/usr/share/droidvm/aavmf-QEMU_EFI.fd /data/local/tmp/flash0.img'
+adb shell su -c 'truncate -s 67108864 /data/local/tmp/flash0.img'   # 768 KiB → 64 MiB
+```
+
+> 过了这关后，仍需配合 wrapper 补 `-netdev` / balloon（第 2 条）。
+> 「GUI + wrapper」理论上能跑，但**未经验证** —— 命令行路线仍是唯一实测方法。
+
+> 更多坑见 [docs/05-gotchas.md](../../docs/05-gotchas.md)（第 2、8、9 条）。

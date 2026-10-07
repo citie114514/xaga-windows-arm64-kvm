@@ -351,9 +351,13 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 > 所以 `scripts/phone/boot-win.sh` 会先等端口空闲、启动后再核对实际端口。
 
 **② 用 DroidVM 应用自己的配置启动**
-> 这里还有两个坑：
+> 这里还有三个坑：
 > - `vms.json` 里 `screens.*.vnc.port` 的默认值是 **`-1`**，意思是「自动挑一个」
 >   —— **每次启动端口都可能不一样** ✗，你 `adb forward tcp:5900` 转发的端口没人听
+> - 应用**手动创建**的 VM 用 `-pflash` 加载固件，要求固件文件正好 **64 MiB**，
+>   而自带固件只有 768 KiB → 直接报
+>   `cfi.pflash01 ... requires 67108864 bytes ... provides 786432 bytes` ✗
+>   （修复思路：把固件补零到 64 MiB，见 [docs/05](docs/05-gotchas.md) 第 8(d) 条）
 > - 应用自己建的配置**本身就跑不起来**（缺 `-netdev` 和 balloon，需要包装脚本补）；
 >   而**手改 `vms.json` 又会让应用读不出来** ✗
 >
