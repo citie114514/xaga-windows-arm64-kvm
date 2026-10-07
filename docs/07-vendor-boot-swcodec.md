@@ -1,6 +1,6 @@
 # vendor_boot 软编回退补丁 —— 让 KVM 和日用共存
 
-[**中文**](07-vendor-boot-swcodec.md) | [English](en/07-vendor-boot-swcodec.md)
+[**中文**](07-vendor-boot-swcodec.md)  （English / 日本語 / Русский 版待补）
 
 > 刷了 NoGZ tee 之后，硬件视频编解码会失效（[第 13 条](05-gotchas.md)）——
 > Moonlight 无响应、录屏 0 字节、QQ 图片不显示。
