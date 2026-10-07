@@ -242,9 +242,19 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
 # 一键跑完：环境检查 → 备份 → dump → 构建 → 签名 → 校验 → 刷入 → 验证提示
+# （首次运行会自动给 mtk-mod-tee-nogz 打两个必要补丁：sign_all_flag 定义 + xagapro profile）
 cd <本仓库>\scripts
-.\kvm-oneclick.ps1 -Profile xaga -TeeFixRepo D:\mtk-mod-tee-nogz -PwnageDir D:\pwnage24mtk
+.\kvm-oneclick.ps1 -Profile xagapro -TeeFixRepo D:\mtk-mod-tee-nogz -PwnageDir D:\pwnage24mtk
 ```
+
+> ⚠️ **-Profile 必须用 `xagapro`**（Note 11T Pro / Pro+ 的 `f8f286f1…` 原厂基座批次）——
+> 上游的 `xaga` profile 是另一批固件（`bd4b13a7…`），哈希校验对不上会直接中止。
+> 不确定自己是不是这批？先看 `tee_a` 哈希（脚本自检会打印），`f8f286f1` 开头就用 `xagapro`。
+>
+> ⚠️ **升过 Android 16 的设备注意**：OTA 会换掉 `lk_a`（`8cbaa2e8…` → `a17d87c6…`）。
+> 补丁在实机上照样工作 ✓，但构建工具的离线回归需要与 tee 配对的那支 lk ——
+> 一键脚本会自动在 `lk-archive/` 里找配对备份；找不到时会给出明确指引
+> （可改用 [`flash-tee.ps1`](#) 直接刷成品，不需要构建）。
 
 脚本会做这些事，**每一步都有输出和校验**：
 

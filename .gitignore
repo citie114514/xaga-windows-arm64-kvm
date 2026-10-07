@@ -11,4 +11,5 @@ conversation.md
 
 # 放行成品 tee 镜像（示例）
 !tee/*.img
+!lk-archive/*.img
 !tee/*.bin

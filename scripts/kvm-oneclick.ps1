@@ -44,6 +44,7 @@
 [CmdletBinding()]
 param(
     [string] $Profile    = 'xaga',
+    [string] $ProjRepo   = '',
     [Parameter(Mandatory=$true)][string] $TeeFixRepo,
     [Parameter(Mandatory=$true)][string] $PwnageDir,
     [string] $WorkDir    = '.\kvm-work',
@@ -61,6 +62,10 @@ function Warn($t)    { Write-Host "  [警告] $t" -ForegroundColor Yellow }
 function Fail($t)    { Write-Host "  [失败] $t" -ForegroundColor Red; throw $t }
 
 # ---- 全局 -------------------------------------------------------------------
+if (-not $ProjRepo) {
+    $here2 = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent (Get-Location).Path }
+    $ProjRepo = Split-Path -Parent $here2
+}
 $WorkDir = (New-Item -ItemType Directory -Force -Path $WorkDir).FullName
 $BackupDir = Join-Path $WorkDir 'backup'
 $DumpDir   = Join-Path $WorkDir 'dump'
@@ -98,7 +103,10 @@ function Find-AdbExe {
 $script:AdbExe = Find-AdbExe
 function Invoke-Adb { param([Parameter(ValueFromRemainingArguments=$true)]$AdbArgs)
     $old = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
-    $out = & $script:AdbExe @AdbArgs 2>&1
+    $call = @()
+    if ($script:Serial) { $call += @('-s', $script:Serial) }
+    $call += $AdbArgs
+    $out = & $script:AdbExe @call 2>&1
     $ErrorActionPreference = $old
     return ($out | ForEach-Object { "$_".TrimEnd() })
 }
@@ -118,12 +126,39 @@ Ok "python: $pyver  ($PY)"
 if (-not (Test-Path (Join-Path $TeeFixRepo 'scripts\build.py'))) { Fail "TeeFixRepo 里找不到 scripts\build.py: $TeeFixRepo" }
 Ok "mtk-mod-tee-nogz: $TeeFixRepo"
 
+# ---- 自动给上游 mtk-mod-tee-nogz 打必要补丁（幂等，细节见 fix-upstream.ps1）----
+# 上游目前：① build.py 调用了未定义的 sign_all_flag() → 签名必报 NameError
+#           ② --profile 没有 xagapro（Note 11T Pro+ 原厂基座 f8f286f1… 批次）
+$buildPyPath = Join-Path $TeeFixRepo 'scripts\build.py'
+$profilesJsonPath = Join-Path $TeeFixRepo 'references\profiles.json'
+$needFix = $false
+$buildSrc = Get-Content $buildPyPath -Raw -Encoding UTF8
+if (($buildSrc -notmatch 'def sign_all_flag') -or ($buildSrc -notmatch '"xagapro"')) { $needFix = $true }
+if (-not (Select-String -Path $profilesJsonPath -Pattern '"xagapro"' -Quiet)) { $needFix = $true }
+if ($needFix) {
+    Info '上游 mtk-mod-tee-nogz 缺少必要补丁 —— 自动修复中（详见 fix-upstream.ps1）'
+    $fixScript = Join-Path $PSScriptRoot 'fix-upstream.ps1'
+    if (-not (Test-Path $fixScript)) { Fail "找不到 $fixScript —— 请更新本仓库" }
+    & $fixScript -TeeFixRepo $TeeFixRepo -ProjRepo $ProjRepo
+    if ($LASTEXITCODE -ne 0) { Fail '上游补丁失败 —— 请看上方输出' }
+    Ok '上游补丁就绪'
+} else {
+    Ok '上游 mtk-mod-tee-nogz 补丁已就绪'
+}
+
 if (-not (Test-Path (Join-Path $PwnageDir 'sign_mtk_cert.py'))) { Fail "PwnageDir 里找不到 sign_mtk_cert.py: $PwnageDir" }
 Ok "pwnage24mtk: $PwnageDir"
 
 $devs = (Invoke-Adb devices) | Select-String 'device$'
 if (-not $devs) { Fail '没有已授权的 adb 设备（先插 USB 或 adb connect）' }
-Ok "设备: $($devs -join ' , ')"
+if (-not $Serial) {
+    $devList = @($devs | ForEach-Object { ($_ -split '\s+')[0] })
+    if ($devList.Count -gt 1) {
+        Info "检测到多台设备: $($devList -join ' , ') → 自动选第一台（用 -Serial 可指定）"
+    }
+    $script:Serial = $devList[0]
+}
+Ok "设备: $Serial"
 
 $model = ShRaw 'getprop ro.product.device'
 $soc   = ShRaw 'getprop ro.soc.model'
@@ -204,6 +239,13 @@ Info "tee_a 分区大小: $TeeSize 字节"
 # ============================================================================
 Section "从设备 dump 出 TEE / LK / preloader（保证与设备哈希匹配）"
 
+# profile 期望的 lk 哈希（用于检测“设备 lk 已被 OTA 更换”的情况）
+$profileLkHash = ''
+try {
+    $pj = Get-Content (Join-Path $TeeFixRepo 'references\profiles.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    $profileLkHash = $pj.$Profile.lk_sha256
+} catch { }
+
 foreach ($p in 'tee_a','lk_a','preloader_raw_a') {
     Write-Host "  dump $p ... " -NoNewline
     Sh "dd if=/dev/block/by-name/$p of=/data/local/tmp/dp_$p.img bs=4096 2>/dev/null" | Out-Null
@@ -212,6 +254,36 @@ foreach ($p in 'tee_a','lk_a','preloader_raw_a') {
     if (Test-Path $local) {
         Write-Host "OK  $((Get-Item $local).Length) 字节" -ForegroundColor Green
     } else { Fail "dump $p 失败" }
+}
+
+# ---- lk 配对检测：OTA 会换 lk（实测 A15→A16 后 lk_a 从 8cbaa2e8 变 a17d87c6），
+#      而上游 build.py 强制 tee+lk 成对哈希校验。补丁只改 tee 里的 atf，
+#      实机验证 lk 变化不影响成品工作，但【构建时的回归模拟】需要配对的 lk。
+if ($profileLkHash) {
+    $lkDumped = (Get-FileHash (Join-Path $DumpDir 'lk_a.img') -Algorithm SHA256).Hash.ToLower()
+    if ($lkDumped -ne $profileLkHash) {
+        Warn "设备的 lk_a ($($lkDumped.Substring(0,16))…) 与 profile $Profile 期望的 ($($profileLkHash.Substring(0,16))…) 不同"
+        Info '原因：OTA 更新会换 lk（本机实测 A15→A16 后 lk 被换）。实机上这不影响补丁工作 ✓'
+        Info '但构建工具的离线回归需要“与 tee 配对的那支 lk”才能跑通。'
+        $searchRoots = @((Join-Path $ProjRepo 'lk-archive'), (Join-Path $ProjRepo 'kvm-work'))
+        $cand = $searchRoots | ForEach-Object {
+            Get-ChildItem $_ -Recurse -Filter 'lk_a.img' -ErrorAction SilentlyContinue
+        } | Where-Object { (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower() -eq $profileLkHash } |
+                Select-Object -First 1
+        if ($cand) {
+            Info "找到配对的 lk 备份: $($cand.FullName) → 使用它"
+            Copy-Item $cand.FullName (Join-Path $DumpDir 'lk_a.img') -Force
+        } else {
+            Fail (@"
+设备的 lk 已被 OTA 更换，且本地没有配对的 lk 备份。两个选择：
+  ① 用成品直接刷（不需要构建）：scripts\flash-tee.ps1 -Yes
+  ② 提供 lk_a.img（与你的 tee 批次配对的那支，可在升 OTA 前备份过）后重跑
+完整说明见 tee/README.md 的「补丁绑死的是 tee 基座」一节。
+"@)
+        }
+    } else {
+        Ok "lk_a 与 profile 配对 ✓ ($($lkDumped.Substring(0,16))…)"
+    }
 }
 
 # ============================================================================
