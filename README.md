@@ -64,6 +64,15 @@
 
 ![Windows 11 ARM64 桌面](images/final-1080.png)
 
+**实机证据**：Windows 11 ARM64 里 CPU-Z 看到的就是虚拟化的 `virt-10.0`，系统信息直接显示 **KVM Virtual Machine**：
+
+| CPU-Z Bench（虚拟机内跑分） | 系统信息（KVM Virtual Machine） |
+|---|---|
+| ![CPU-Z Bench](images/cpu-z-bench.png) | ![关于本机](images/about-kvm-vm.png) |
+
+> 单核 247 / 多核 709（4 vCPU，对比参考骁龙 860）；处理器显示 `virt-10.0 @ 2.36 GHz`，
+> 设备型号 **KVM Virtual Machine** —— KVM 硬件加速真实生效的直接证据。
+
 ---
 
 ## ⚠️ 开始之前必须知道的**三**件事
@@ -419,7 +428,7 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 - [`MT6895-Mainline`](https://github.com/MT6895-Mainline) —— 这台机器的主线移植项目，也是 NoGZ 补丁工具的上游
 - [`mtk-mod-tee-nogz`](https://github.com/MT6895-Mainline/mtk-mod-tee-nogz) —— ATF NoGZ 补丁的构建/签名工具（本项目的一键脚本封装了它）
 - [`kasnria001/pwnage24mtk`](https://github.com/kasnria001/pwnage24mtk) —— MTK 证书签名绕过工具
-- [kde-yyds](https://space.bilibili.com/2008726064) —— 同机主线 Linux 进展记录，本项目的灵感来源
+- [kde-yyds](https://space.bilibili.com/2008726064)（GitHub: [kde-yyds](https://github.com/kde-yyds)）—— 同机主线 Linux 进展记录，本项目的灵感来源
 
 ## License
 
