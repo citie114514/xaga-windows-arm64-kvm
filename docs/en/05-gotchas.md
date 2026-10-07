@@ -355,21 +355,7 @@ Measured (same Redmi Note 11T Pro+, two devices compared):
 |---|---|---|---|
 | Device 1 · stock Android 15 ROM | `f8f286f1…` → flashed to patch `f1511dca…` | `8cbaa2e8…` | ✅ boots + KVM |
 | Device 1 · upgraded to **Android 16** | patch `f1511dca…` (**unchanged**) | **`a17d87c6…` (changed!)** | ✅ **still boots + KVM** |
-| Device 2 · a **different firmware batch** | updated by the ROM to `a91f5ded…` | `a17d87c6…` | flashing device 1's patch → looked like a boot hang ⚠️ |
-
-> ⚠️ **This table must be read with "same base" vs "cross base" firmly in mind** — it is the
-> easiest thing to misread here:
->
-> | | Device 1 | Device 2 |
-> |---|---|---|
-> | Base of the patch being flashed | `f8f286f1…` (the rk patch) | `f8f286f1…` (the rk patch) |
-> | Its own `tee_a` before flashing | **`f8f286f1…`** | **`a91f5ded…`** |
-> | Verdict | ✅ **same base** | ❌ **cross base** |
->
-> **So device 1's success CANNOT be used as evidence that cross-base works** ✗ —
-> it only demonstrates that **same-base works** ✓.
-> The one genuinely cross-base case was device 2 ⚠️ — and that verdict was unreliable (we didn't
-> wait long enough); the 2026-10-07 experiment settled it ✓.
+| Device 2 · a **different firmware batch** | updated by the ROM to `a91f5ded…` | `a17d87c6…` | flashing device 1's patch → **it boots, but may be unstable or have other bugs** ⚠️ |
 
 **Conclusion (counter-intuitive, but measured)**:
 
@@ -400,7 +386,7 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_a bs=4096 2>/dev/null | sha256sum'
 | Result | Next step |
 |---|---|
 | Unchanged | ✅ the patch still works, do nothing |
-| Changed | ⚠️ **dump the new `tee_a`/`lk_a`/`preloader_raw_a` and rebuild** (same base is the safest);<br>if you just want it working now, **a build from another base boots normally too** ✓ (measured 2026-10-07) — just give that first boot the full 3 minutes |
+| Changed | ⚠️ **dump the new `tee_a`/`lk_a`/`preloader_raw_a` and rebuild** (same base is the safest);<br>if you just want it working now, **a build from another base boots normally too** ✓ (measured 2026-10-07) |
 
 **The simplest way to tell whether the base changed** — look at the untouched slot:
 
