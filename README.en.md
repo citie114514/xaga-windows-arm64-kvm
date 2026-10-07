@@ -11,38 +11,31 @@
 
 ---
 
-> # ⚠️ Positioning first: this is a **toy / experiment**, **not for a daily driver**
+> # Positioning: KVM and video codecs CAN coexist (updated 2026-10-08)
 >
-> The cost of enabling KVM is that **hardware video decoding stops working** ✗ — measured:
+> The bare cost of enabling KVM is that **hardware video codecs stop working**
+> (the VCP handshake depends on the EL2/secure-world chain — measured):
 >
-> | | Before | After | After reverting |
-> |---|---|---|---|
-> | Moonlight streaming | ✅ | ❌ **no response** | ✅ restored |
-> | UU Remote | ✅ | ❌ **unusable** | ✅ restored |
-> | QQ chat images | ✅ | ❌ **don't display** | ✅ restored |
-> | Internal storage | ✅ | ⚠️ may not mount at boot | ✅ restored |
-> | App data | ✅ | ⚠️ may be corrupted | —— |
+> | | Before | NoGZ only (bare) | + vendor_boot patch | Stock restored |
+> |---|---|---|---|---|
+> | Moonlight streaming | ✅ | ❌ **no response** | ⚠️ works (software) | ✅ |
+> | UU Remote | ✅ | ❌ **unusable** | ⚠️ works (software) | ✅ |
+> | QQ chat images | ✅ | ❌ **not shown** | ✅ restored | ✅ |
+> | **Screen / camera recording** | ✅ | ❌ **0 bytes** | ✅ **restored** (software) | ✅ |
+> | **/dev/kvm** | ❌ | ✅ | ✅ **still there** | ❌ |
 >
-> **Reverting restores everything immediately** ✓ (measured)
+> **Fix (fully verified)**: flash one more vendor_boot software-codec fallback patch
+> (2-byte dtb edit) → mtk HW codecs unbound → framework falls back to software codecs →
+> **KVM and recording/streaming/images all work at the same time** ✓
+> → [docs/07-vendor-boot-swcodec.md](docs/07-vendor-boot-swcodec.md)
 >
-> | | |
-> |---|---|
-> | ❌ **Not suitable** | a daily-driver phone |
-> | ✅ **Suitable** | a spare / idle / dedicated-VM phone |
-> | ✅ **Or** | accept "hardware video decode unavailable" |
-> | ✅ **Want both** | go the [mainline Linux](docs/06-mainline.md) route |
+> **Remaining cost**: software codecs use more CPU — 1080p fine ✓, 4K/high-fps may stutter ⚠️,
+> streaming latency higher than true HW. Functional availability fully restored ✓
 >
-> **Precise mechanism**: MTK's venc / vdec, when `open()`ed, use an **IPI to the VCP co-processor to query the
-> "supported frame sizes"**, and the VCP's **READY handshake depends on the EL2 / secure-world chain**.
-> Raising the Android kernel to EL2 (which KVM requires) breaks that handshake
-> → the size table comes back empty → Codec2's `configure()` returns `EINVAL`
-> → and **the framework/apps do NOT fall back to software encoding** ✗ → `screenrecord` produces a 0-byte file ✗
-> (the `/dev/vdec-fmt` node *is* that frame-size table; software codecs don't go through VCP so they're unaffected)
+> **Back to stock usage**: flash stock tee + stock vendor_boot + reboot → everything restored ✓
 >
-> ⚠️ **This is unrelated to base matching** ✗ — a same-base patch does it too ✓
-> **As long as KVM is present, hardware codecs are unusable — this is the inherent, unavoidable cost of the tee patch** ✗
+> Full measurements and rollback: [docs/05-gotchas.md #13](docs/05-gotchas.md)
 >
-> Full measurements and rollback: [docs/05-gotchas.md item 13](docs/05-gotchas.md)
 
 ![Windows 11 ARM64 desktop](images/final-1080.png)
 

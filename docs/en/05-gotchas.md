@@ -545,7 +545,15 @@ bcdedit /store $BCD /set "{bootmgr}" timeout      5
 
 ---
 
-## 13. 🔴 **Enabling KVM breaks hardware video codecs — don't use it on a daily driver**
+## 13. 🟠 **Enabling KVM breaks hardware video codecs — but a verified fix exists (vendor_boot software-codec fallback)**
+
+> **STATUS UPDATE (2026-10-08)**: the earlier conclusion "no workaround, mutually exclusive"
+> has been **overturned by re-testing**: with the vendor_boot swcodec fallback patch,
+> codecs fully recover via software encoding while KVM keeps working.
+> The authoritative, up-to-date write-up lives in the Chinese version:
+> [docs/05-gotchas.md #13](../05-gotchas.md#13) and [docs/07-vendor-boot-swcodec.md](07-vendor-boot-swcodec.md).
+> The English text below describes the **bare combination** (NoGZ tee + stock vendor_boot) only.
+
 
 **Symptoms** (measured on real hardware, three states: before / after / after reverting)
 

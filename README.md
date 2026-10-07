@@ -11,57 +11,34 @@
 
 ---
 
-> # ⚠️ 先说清楚定位：这是**玩具 / 实验项目**，**不适合当主力机**
+> # 定位说明：KVM 与编解码可以两全（2026-10-08 更新）
 >
-> 开 KVM 的代价是 **硬件视频解码会失效** ✗ —— 已实测：
+> 开 KVM 的裸代价是 **硬件视频编解码失效**（VCP 握手依赖 EL2/安全世界链，已实测）：
 >
-> | | 刷之前 | 刷之后 | 刷回原厂后 |
-> |---|---|---|---|
-> | Moonlight 串流 | ✅ | ❌ **无响应** | ✅ 恢复 |
-> | UU 远程 | ✅ | ❌ **用不了** | ✅ 恢复 |
-> | QQ 聊天图片 | ✅ | ❌ **不显示** | ✅ 恢复 |
-> | 内部存储 | ✅ | ⚠️ 开机可能不挂载 | ✅ 恢复 |
-> | 应用数据 | ✅ | ⚠️ 可能损坏 | —— |
+> | | 刷之前 | 刷 NoGZ 后（裸）| + vendor_boot 补丁后 | 刷回原厂后 |
+> |---|---|---|---|---|
+> | Moonlight 串流 | ✅ | ❌ **无响应** | ⚠️ 可用（软编）| ✅ |
+> | UU 远程 | ✅ | ❌ **用不了** | ⚠️ 可用（软编）| ✅ |
+> | QQ 聊天图片 | ✅ | ❌ **不显示** | ✅ 恢复 | ✅ |
+> | **录屏 / 相机录像** | ✅ | ❌ **0 字节** | ✅ **恢复**（软编）| ✅ |
+> | **/dev/kvm** | ❌ | ✅ | ✅ **仍在** | ❌ |
 >
-> **刷回原厂立刻全部恢复** ✓（已实测）
+> **解法（已完整实测）**：再刷一个 vendor_boot 软编回退补丁（改 dtb 2 字节）→
+> mtk 硬编解绑 → 框架回退软编 → **KVM 和录屏/串流/图片同时可用** ✓
+> → [docs/07-vendor-boot-swcodec.md](docs/07-vendor-boot-swcodec.md)
 >
-> | | |
-> |---|---|
-> | ❌ **不适合** | 日常主力机 |
-> | ✅ **适合** | 备用机 / 闲置机 / 专门跑虚拟机的机器 |
-> | ✅ **或者** | 接受“硬件视频解码不可用”这个代价 |
-> | ✅ **想要两全** | 走 [主线 Linux](docs/06-mainline.md) 路线 |
+> **剩余代价**：编解码走软编，CPU 占用更高——1080p 无碍 ✓，4K/高帧率可能卡 ⚠️，
+> 串流延迟高于真硬编。功能可用性完全恢复 ✓
 >
-> **精确机理**（两层断裂，均已实测确认）：
+> **机理**（两层，实测确认）：
+> ① VCP 握手依赖 EL2/安全世界链 → 内核抬到 EL2 后断裂 → 硬编全废（NoGZ 固有代价，与基座无关）
+> ② 软编是否可用**取决于 ROM 批次**：早期在 pearl(A15) ROM 上测得 mediaswcodec 缺符号 →
+>    曾误推为普遍规律；2026-10-08 在 dali(A16) ROM 上复测**软编正常** ✗→✓
 >
-> **第一层：VCP 固件握手失败 → 硬件编解码全部失效** ✗
-> MTK 的 venc/vdec 在 `open()` 时要用 IPI 向 VCP 协处理器查「支持的帧尺寸」，
-> 而 VCP 的 READY 握手依赖 EL2 / 安全世界那条链；
-> 把 Android 内核抬到 EL2（KVM 的必需条件）后握手就断了
-> → 尺寸表为空 → Codec2 的 `configure()` 返回 `EINVAL` → 硬编硬解全部失效 ✗
->
-> **第二层：软编也失效 → 没有兜底** ✗
-> 移植 ROM 的 system 与 APEX 版本不配套：
-> swcodec 的 mediaswcodec 链接到 `/system/lib64/libmedia.so` 时缺符号
-> `MetaDataBase::writeToParcel`
-> → 软编（`c2.android.avc.encoder`）同样无法工作 ✗
->
-> **两层叠加的结果：录屏 0 字节、视频播放可能异常** ✗
-> ⚠️ 软编失效是移植 ROM 的系统级缺陷，**与 tee 补丁无关** ✗
-> （原厂 tee 下软编同样可能有问题，只是被硬编掩盖了）
->
-> ⚠️ **没有「不刷分区」的绕过办法** ✗
->
-> **二选一**：
->
-> · 想录屏 / 硬件解码 → **刷回原厂 tee + 重启** ✓
-> · 想用 KVM → **刷回 NoGZ 补丁 + 接受这个代价** ✓
->
-> **两者互斥，当前没有两全方案** ✗
+> **回到纯日用**：刷回原厂 tee + 原厂 vendor_boot + 重启 → 全部恢复 ✓
 >
 > 完整实测与回退方法：[docs/05-gotchas.md 第 13 条](docs/05-gotchas.md)
 >
-
 ![Windows 11 ARM64 桌面](images/final-1080.png)
 
 **实机证据**：Windows 11 ARM64 里 CPU-Z 看到的就是虚拟化的 `virt-10.0`，系统信息直接显示 **KVM Virtual Machine**：
@@ -352,6 +329,7 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | [profiles/](profiles/) | 固件 profile（ATF/LK 偏移定义）|
 | [tools/](tools/) | 为新固件重新定位 profile 的逆向工具 |
 | [scripts/](scripts/) | 一键脚本（构建 VHDX / 提驱动 / 开 KVM）|
+| [docs/07-vendor-boot-swcodec.md](docs/07-vendor-boot-swcodec.md) | **vendor_boot 软编回退补丁（已验证）**：让 KVM 和录屏 / 串流 / 图片共存 |
 | [scripts/write-boot-manual.ps1](scripts/write-boot-manual.ps1) | **绕开 `bcdboot` 手工写 UEFI 引导**（宿主开了 Secure Boot 时，`bcdboot` 会因缺 `EFI_EX` 而失败 —— 见 [docs/05](docs/05-gotchas.md) 第 12 条）|
 | [scripts/phone/](scripts/phone/) | **手机端脚本**：`boot-win.sh` 启动 / `stop-vm.sh` 停止 / `restore-disk.sh` 恢复磁盘 / `qemu-wrapper.sh` 让 DroidVM 应用自己也能跑 |
 
@@ -411,8 +389,8 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 > 另外：**`verifiedbootstate = orange`（BL 解锁）本来就是 Play Integrity 的杀手**，
 > 跟你刷不刷 `tee` 无关。
 
-**② 但日用会有实际代价 —— 硬件视频解码会失效** ✗
-> 实测（刷前/刷后/刷回 三次对比）：
+**② 但裸组合会有实际代价 —— 硬件视频解码失效（有已验证的解）** ✗→✓
+> 裸组合（NoGZ tee + 原厂 vendor_boot）实测（刷前/刷后/刷回 三次对比）：
 >
 > | | 刷之前 | 刷之后 | 刷回后 |
 > |---|---|---|---|
@@ -422,13 +400,14 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 > | 内部存储 | ✅ | ⚠️ 可能开机不挂载 | ✅ |
 >
 > **原因**：MTK 的硬件编解码依赖 `mtk_sec_heap` + `gz_tz_system` + `cmdq_sec_drv`，
-> GZ 拿不到 EL2 后这条链就断了 ✗
+> GZ 拿不到 EL2 后这条链就断了 ✗（与基座匹不匹配无关，同基座补丁一样出现）
 >
-> ⚠️ **这与基座匹不匹配无关** ✗ —— 同基座补丁一样会出现 ✓
+> ✅ **解（2026-10-08 已完整验证）**：再刷 [vendor_boot 软编回退补丁](docs/07-vendor-boot-swcodec.md)
+> → 硬编解绑、框架回退软编 → **KVM 与录屏/串流/图片同时可用**（软编性能代价：1080p 无碍，4K 可能卡）
 
-**→ 结论：不要把开 KVM 的机器当主力机** ✓
-> 适合备用机 / 闲置机 / 专门跑虚拟机的机器。
-> 想要两全 → 走 [主线 Linux](docs/06-mainline.md) 路线。
+**→ 结论** ✓
+> 功能上可以日用（装 swcodec 补丁后），软编有性能/功耗损耗，重度视频场景不佳。
+> 想要完整 GPU 加速的虚拟机 → 走 [主线 Linux](docs/06-mainline.md) 路线。
 > 完整实测见 [tee/README.md](tee/README.md)。
 
 ---
