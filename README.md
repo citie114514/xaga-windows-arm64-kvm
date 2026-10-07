@@ -205,8 +205,13 @@ bash tee/verify.sh <serial>        # 指定设备
 > 变量更多，而且硬件解码失效的代价一样存在（见第 13 条）。
 > 实在要用就记得**先备份**、**给它 3 分钟**。
 >
-> ⚠️ **刷完补丁后每次开机，第二屏都会卡约 1~2 分钟**才进系统 —— 这是正常的，
+> ⚠️ **刷完补丁后开机，第二屏会卡约 1~2 分钟**才进系统 —— 这是正常的，
 > **不是变砖，等着就好**。千万不要急着进 fastboot，那会打断启动。
+>
+> 💡 **2026-10-07 新观察**：多次开机之后，这段延迟**可能会缩短甚至基本消失**
+> （备用机实测：KVM 仍在，编解码失效不变，但开机速度明显恢复）。
+> 机理尚未确认（推测是最初几次开机叠加了一次性的系统收尾工作 / 服务重试退避），
+> 但**判断规则不变：卡第二屏 + adb 可见 = 等 3 分钟再说**。
 >
 > ⚠️ **刷了会不会影响日用应用检测（银行 App / Play Integrity / DRM）？实测答案：不会** ——
 > 补丁只改 EL2 归属，不碰 TEE。完整实测数据、基座对照表与回退方法见 [`tee/README.md`](tee/README.md)。
@@ -254,11 +259,12 @@ adb shell su -c 'ls -l /dev/kvm'
 adb shell su -c 'cat /proc/misc | grep kvm'
 ```
 
-> ### ⚠️ 刷完补丁后**每次开机**都会**在第二屏卡 1~2 分钟**才进系统 —— 这不是变砖
+> ### ⚠️ 刷完补丁后开机**会在第二屏卡 1~2 分钟**才进系统 —— 这不是变砖
 >
-> 实测：从重启到 `sys.boot_completed=1` 一共 **150 秒**，中间 120 秒屏幕上毫无变化。
-> ⚠️ **不是只有第一次** —— 刷了补丁之后**每次开机都这样** ✗
-> 完成后 `/dev/kvm` 正常出现 ✓
+> 刷完补丁后的**最初几次**开机都会停在**开机第二屏**（logo2 / 转圈），
+> **1~2 分钟没有任何动静** ✗ —— 看起来完全像「卡二 / 变砖」。
+> 💡 **多次开机后这段延迟可能缩短**（2026-10-07 备用机观察，机理未确认），
+> 但**第一次刷完时请按 2 分钟预期**，不要心存侥幸。
 >
 > **千万不要**在这时按「音量下 + 电源」进 fastboot ✗ —— **那会打断启动**，
 > 把一个本来能好的开机变成真的进不了系统 ✗。**等 3 分钟** ✓
@@ -327,7 +333,6 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | [profiles/](profiles/) | 固件 profile（ATF/LK 偏移定义）|
 | [tools/](tools/) | 为新固件重新定位 profile 的逆向工具 |
 | [scripts/](scripts/) | 一键脚本（构建 VHDX / 提驱动 / 开 KVM）|
-| [docs/07-vendor-boot-swcodec.md](docs/07-vendor-boot-swcodec.md) | **vendor_boot 软编回退补丁**：让 KVM 和录屏 / QQ 图片 / UU 远程 共存 |
 | [scripts/write-boot-manual.ps1](scripts/write-boot-manual.ps1) | **绕开 `bcdboot` 手工写 UEFI 引导**（宿主开了 Secure Boot 时，`bcdboot` 会因缺 `EFI_EX` 而失败 —— 见 [docs/05](docs/05-gotchas.md) 第 12 条）|
 | [scripts/phone/](scripts/phone/) | **手机端脚本**：`boot-win.sh` 启动 / `stop-vm.sh` 停止 / `restore-disk.sh` 恢复磁盘 / `qemu-wrapper.sh` 让 DroidVM 应用自己也能跑 |
 
