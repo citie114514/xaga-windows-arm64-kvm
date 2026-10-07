@@ -157,7 +157,17 @@ NoGZ 补丁让 GZ 拿不到 EL2  →  这条依赖链断裂 ✗
    →  Moonlight / UU远程 / QQ 图片 / 缩略图生成  全部受影响 ✗
 ```
 
-**精确机理**（为什么偏偏是硬件编解码坏掉）：
+**精确机理**（两层断裂）：
+
+**第一层**：VCP 握手失败 → 硬件编解码全废 ✗
+
+**第二层**：移植 ROM 的 system 与 APEX 版本不配套 →
+swcodec 链接 libmedia.so 缺符号 `MetaDataBase::writeToParcel` →
+软编（c2.android.avc.encoder）也废 ✗
+
+**两层叠加**：录屏 0 字节、视频播放可能异常 ✗
+
+**为什么偏偏是硬件编解码坏掉**：
 
 ```
 MTK 的 venc / vdec 在 open() 的时候：
