@@ -43,6 +43,10 @@
 > **只要 KVM 在，硬件编解码就不可用 —— 这是 tee 补丁的固有代价，无法规避** ✗
 >
 > 完整实测与回退方法：[docs/05-gotchas.md 第 13 条](docs/05-gotchas.md)
+>
+> ✅ **但有解法**：改 `vendor_boot` 里两个字节，让 venc/vdec 驱动不绑定 →
+> 框架自动回退到**软件编码** → **录屏 / QQ 图片 / UU 远程 恢复正常** ✓
+> 已实测：KVM + screenrecord **同时工作** ✓（成品 `vendor_boot_a_swcodec.img` 已在仓库根目录）
 
 ![Windows 11 ARM64 桌面](images/final-1080.png)
 
