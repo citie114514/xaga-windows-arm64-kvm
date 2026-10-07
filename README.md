@@ -42,7 +42,7 @@
 > ⚠️ **这与基座匹不匹配无关** ✗ —— 同基座补丁一样会出现 ✓
 > **只要 KVM 在，硬件编解码就不可用 —— 这是 tee 补丁的固有代价，无法规避** ✗
 >
-> 完整实测与回退方法：[docs/05-gotchas.md 第 14 条](docs/05-gotchas.md)
+> 完整实测与回退方法：[docs/05-gotchas.md 第 13 条](docs/05-gotchas.md)
 
 ![Windows 11 ARM64 桌面](images/final-1080.png)
 
@@ -182,7 +182,7 @@ bash tee/verify.sh <serial>        # 指定设备
 
 自检会打印你设备的 `tee_a` / `tee_b`，并区分三种状态：**未打补丁 / 已打补丁 / 需要自行构建**。
 
-⚠️ **补丁是按 `tee` 基座构建的** —— 推荐用同基座的（更保守、变量更少）。
+> ⚠️ **补丁是按 `tee` 基座构建的** —— 推荐用同基座的（更保守、变量更少）。
 > **跨基座也实测能启动** ✓（2026-10-07），但**不推荐**：
 > 变量更多，而且硬件解码失效的代价一样存在（见第 13 条）。
 > 实在要用就记得**先备份**、**给它 3 分钟**。
@@ -309,7 +309,7 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | [profiles/](profiles/) | 固件 profile（ATF/LK 偏移定义）|
 | [tools/](tools/) | 为新固件重新定位 profile 的逆向工具 |
 | [scripts/](scripts/) | 一键脚本（构建 VHDX / 提驱动 / 开 KVM）|
-| [scripts/write-boot-manual.ps1](scripts/write-boot-manual.ps1) | **绕开 `bcdboot` 手工写 UEFI 引导**（宿主开了 Secure Boot 时，`bcdboot` 会因缺 `EFI_EX` 而失败 —— 见 [docs/05](docs/05-gotchas.md) 第 13 条）|
+| [scripts/write-boot-manual.ps1](scripts/write-boot-manual.ps1) | **绕开 `bcdboot` 手工写 UEFI 引导**（宿主开了 Secure Boot 时，`bcdboot` 会因缺 `EFI_EX` 而失败 —— 见 [docs/05](docs/05-gotchas.md) 第 12 条）|
 | [scripts/phone/](scripts/phone/) | **手机端脚本**：`boot-win.sh` 启动 / `stop-vm.sh` 停止 / `restore-disk.sh` 恢复磁盘 / `qemu-wrapper.sh` 让 DroidVM 应用自己也能跑 |
 
 ---

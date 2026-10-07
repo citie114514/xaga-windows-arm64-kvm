@@ -42,7 +42,7 @@
 > ⚠️ **This is unrelated to base matching** ✗ — a same-base patch does it too ✓
 > **As long as KVM is present, hardware codecs are unusable — this is the inherent, unavoidable cost of the tee patch** ✗
 >
-> Full measurements and rollback: [docs/05-gotchas.md item 14](docs/05-gotchas.md)
+> Full measurements and rollback: [docs/05-gotchas.md item 13](docs/05-gotchas.md)
 
 ![Windows 11 ARM64 desktop](images/final-1080.png)
 
