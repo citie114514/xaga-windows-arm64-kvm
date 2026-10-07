@@ -5,7 +5,8 @@
 > Verified on Redmi Note 11T Pro+ / **Redmi K50i** (MT6895 / Dimensity 8100).
 > The **Redmi Note 11T Pro / POCO X4 GT** (codename `xaga`) in the same SoC family works on exactly the
 > same principle, but its firmware differs so it needs its own profile (you can back up and try the
-> prebuilt images first — cross-base has been measured to boot).
+> prebuilt images first, though it is **not recommended**: the cost is the same as for a same-base
+> patch (see "hardware decoding breaks" below) and there are more variables. **Use a same-base patch if you can.**)
 > **No custom ROM, no reflashing your daily system — stay on Android and still run VMs.**
 
 ---
@@ -172,8 +173,9 @@ It prints your device's `tee_a` / `tee_b` and distinguishes three states: **not 
 patched / you need to build your own**.
 
 ⚠️ **A patch is built for one `tee` base** — prefer the one built for yours (more conservative, fewer
-> variables). **But a cross-base patch does boot** ✓ (measured 2026-10-07); it just sits at the second
-> screen for 1–2 minutes first — give it 3 minutes.
+> variables). **A cross-base patch does boot** ✓ (measured 2026-10-07) but is **not recommended**:
+> more variables, and the hardware-decoding cost is identical (see item 13).
+> If you must, **back up first** and **give it 3 minutes**.
 >
 > ⚠️ **Every boot after flashing hangs at the second screen for about 1–2 minutes** before reaching
 > the system — that is normal, **not a brick, just wait**. Do not rush into fastboot; that interrupts

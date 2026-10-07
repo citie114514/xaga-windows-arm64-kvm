@@ -37,7 +37,7 @@ fastboot reboot
 | Codename | Market names | This project |
 |---|---|---|
 | **`xagapro`** | **Redmi Note 11T Pro+** / **Redmi K50i** | ✅ **The device measured here** (both prebuilt images came from it) |
-| `xaga` | **Redmi Note 11T Pro** / **POCO X4 GT** | ⚠️ Different firmware, needs its own profile — but **cross-base has been measured to boot**, so you may back up and try |
+| `xaga` | **Redmi Note 11T Pro** / **POCO X4 GT** | ⚠️ Different firmware, needs its own profile. **A cross-base patch boots but is not recommended** (see the cost below) |
 
 Both are **MT6895 / Dimensity 8100**; the principle is identical and only the firmware base differs.
 
@@ -383,7 +383,7 @@ but because **same-base is more conservative with fewer variables** ✓.
 > |---|---|---|
 > | Base of device 1's patch (`f1511dca…`) | `f8f286f1…` | `f8f286f1…` |
 > | Its own `tee_a` before flashing | **`f8f286f1…`** | **`a91f5ded…`** |
-> | Verdict | ✅ **same base** (expected to work) | ⚠️ **cross base** (measured working ✓, see above) |
+> | Verdict | ✅ **same base** (expected to work) | ⚠️ **cross base** (boots, but **not recommended**) |
 >
 > **Device 1's case was same-base flashing from beginning to end** ✓ — it proves that
 > "**same-base works**" ✓, and **cannot be used as evidence that "cross-base works"** ✗.
@@ -418,7 +418,8 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_b bs=4096 2>/dev/null | sha256sum'
 | **On real hardware** | ✅ **working** | ✅ **working** (2026-10-06) |
 | Profile | [`profiles/xagapro.json`](../profiles/xagapro.json) | [`profiles/shuilanA15.json`](../profiles/shuilanA15.json) |
 
-**⚠️ About "mixing them up" — our earlier "it will definitely stop booting" claim is void, and cross-base is now proven to work** ✓
+**⚠️ About "mixing them up" — our earlier "it will definitely stop booting" claim is void; a cross-base patch does boot** ✓
+**— but it is not recommended** ⚠️ (more variables, and the hardware-decoding cost is the same)
 
 We used to state that flashing a stock-base patch onto a device whose base had been updated
 **stops at the second boot screen**. That conclusion rested on **one misdiagnosed test** ✗ —
