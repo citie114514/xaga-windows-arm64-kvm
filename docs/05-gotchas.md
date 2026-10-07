@@ -556,6 +556,17 @@ MTK 的 venc / vdec 在 open() 的时候：
            Moonlight / UU远程 / QQ 图片 全部失效 ✗
 ```
 
+**第二层：软编也失效 → 没有兜底** ✗
+
+```
+移植 ROM 的 system 与 APEX 版本不配套：
+swcodec 的 mediaswcodec 链接到 /system/lib64/libmedia.so 时缺符号
+MetaDataBase::writeToParcel
+→ 软编（c2.android.avc.encoder）同样无法工作 ✗
+```
+
+**两层叠加：录屏 0 字节、视频播放可能异常** ✗
+
 **这解释了四个现象**：
 
 | 现象 | 解释 |
