@@ -70,15 +70,47 @@ foreach ($d in @($BackupDir, $DumpDir)) { New-Item -ItemType Directory -Force -P
 $PY = Join-Path $TeeFixRepo '.venv\Scripts\python.exe'
 if (-not (Test-Path $PY)) { $PY = 'python' }
 
-function Adb { param([Parameter(ValueFromRemainingArguments=$true)]$Args) & adb @Args }
-function Sh  { param([string]$Cmd) (adb shell "su -c '$Cmd'") -join "`n" }
-function ShRaw { param([string]$Cmd) (adb shell $Cmd) -join "`n" }
+function Find-AdbExe {
+    # 1) 常见绝对路径（不依赖 PATH；UotanToolbox / Android SDK / 手动解压）
+    $cands = @(
+        "C:\Program Files\UotanToolbox\Bin\platform-tools\adb.exe",
+        "C:\Program Files (x86)\UotanToolbox\Bin\platform-tools\adb.exe",
+        "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe",
+        "$env:USERPROFILE\platform-tools\adb.exe",
+        "C:\platform-tools\adb.exe",
+        "D:\platform-tools\adb.exe"
+    )
+    foreach ($p in $cands) { if (Test-Path $p) { return $p } }
+    # 2) PATH 逐目录扫描（比 Get-Command 可靠）
+    foreach ($d in ($env:PATH -split ';')) {
+        if (-not $d) { continue }
+        $p = Join-Path $d.Trim('"') 'adb.exe'
+        if (Test-Path $p) { return $p }
+    }
+    # 3) 最后才试 Get-Command
+    $c = Get-Command adb.exe -CommandType Application -ErrorAction SilentlyContinue
+    if ($c -and $c.Source) { return $c.Source }
+    return $null
+}
+
+# ⚠️ 函数名不能叫 Adb：PowerShell 里函数会遮蔽外部 adb.exe，
+#    导致 `& adb @Args` 递归调到自己 → CallDepthOverflow（PS5 实测）。
+$script:AdbExe = Find-AdbExe
+function Invoke-Adb { param([Parameter(ValueFromRemainingArguments=$true)]$AdbArgs)
+    $old = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    $out = & $script:AdbExe @AdbArgs 2>&1
+    $ErrorActionPreference = $old
+    return ($out | ForEach-Object { "$_".TrimEnd() })
+}
+function Adb { param([Parameter(ValueFromRemainingArguments=$true)]$AdbArgs) Invoke-Adb @AdbArgs }
+function Sh  { param([string]$Cmd) (Adb shell "su -c '$Cmd'") -join "`n" }
+function ShRaw { param([string]$Cmd) (Adb shell $Cmd) -join "`n" }
 
 # ============================================================================
 Section "环境自检"
 
-if (-not (Get-Command adb -ErrorAction SilentlyContinue)) { Fail 'PATH 里没有 adb' }
-Ok "adb: $((Get-Command adb).Source)"
+if (-not $script:AdbExe) { Fail '找不到 adb.exe —— 请装 platform-tools 并加入 PATH 或放在常见位置' }
+Ok "adb: $script:AdbExe"
 
 try { $pyver = & $PY --version 2>&1 } catch { Fail "Python 不可用: $PY" }
 Ok "python: $pyver  ($PY)"
@@ -89,7 +121,7 @@ Ok "mtk-mod-tee-nogz: $TeeFixRepo"
 if (-not (Test-Path (Join-Path $PwnageDir 'sign_mtk_cert.py'))) { Fail "PwnageDir 里找不到 sign_mtk_cert.py: $PwnageDir" }
 Ok "pwnage24mtk: $PwnageDir"
 
-$devs = (adb devices) | Select-String 'device$'
+$devs = (Invoke-Adb devices) | Select-String 'device$'
 if (-not $devs) { Fail '没有已授权的 adb 设备（先插 USB 或 adb connect）' }
 Ok "设备: $($devs -join ' , ')"
 
@@ -129,7 +161,7 @@ if ($kvm -match 'No such file') {
 # 从 expdb 读 preloader 的 SBC 判定
 Info '读取 expdb（preloader 启动日志）确认 Secure Boot 状态...'
 Sh 'dd if=/dev/block/by-name/expdb of=/data/local/tmp/expdb.img bs=1M 2>/dev/null' | Out-Null
-& adb pull /data/local/tmp/expdb.img (Join-Path $WorkDir 'expdb.img') 2>&1 | Out-Null
+Invoke-Adb pull /data/local/tmp/expdb.img (Join-Path $WorkDir 'expdb.img') | Out-Null
 $sbc = Select-String -Path (Join-Path $WorkDir 'expdb.img') -Pattern 'sbc_en = [01]' -AllMatches -Encoding default |
        ForEach-Object { $_.Matches.Value } | Group-Object | Sort-Object Count -Descending
 if ($sbc) {
@@ -152,7 +184,7 @@ foreach ($p in 'tee_a','tee_b','lk_a','lk_b','preloader_raw_a','seccfg') {
     Write-Host "  备份 $p ... " -NoNewline
     Sh "dd if=/dev/block/by-name/$p of=/data/local/tmp/bk_$p.img bs=4096 2>/dev/null" | Out-Null
     $local = Join-Path $BackupDir "$p.$ts.img"
-    & adb pull "/data/local/tmp/bk_$p.img" $local 2>&1 | Out-Null
+    Invoke-Adb pull "/data/local/tmp/bk_$p.img" $local | Out-Null
     if (Test-Path $local) {
         $h = (Get-FileHash $local -Algorithm SHA256).Hash.ToLower()
         $s = (Get-Item $local).Length
@@ -176,7 +208,7 @@ foreach ($p in 'tee_a','lk_a','preloader_raw_a') {
     Write-Host "  dump $p ... " -NoNewline
     Sh "dd if=/dev/block/by-name/$p of=/data/local/tmp/dp_$p.img bs=4096 2>/dev/null" | Out-Null
     $local = Join-Path $DumpDir "$p.img"
-    & adb pull "/data/local/tmp/dp_$p.img" $local 2>&1 | Out-Null
+    Invoke-Adb pull "/data/local/tmp/dp_$p.img" $local | Out-Null
     if (Test-Path $local) {
         Write-Host "OK  $((Get-Item $local).Length) 字节" -ForegroundColor Green
     } else { Fail "dump $p 失败" }
@@ -276,7 +308,7 @@ if (-not $Yes) {
     if ($ans -ne 'yes') { Write-Host '  已取消。' -ForegroundColor Yellow; exit 0 }
 }
 
-& adb push $flashImg /data/local/tmp/tee_nogz_flash.img 2>&1 | Out-Null
+Invoke-Adb push $flashImg /data/local/tmp/tee_nogz_flash.img | Out-Null
 Sh 'sync' | Out-Null
 Sh "dd if=/data/local/tmp/tee_nogz_flash.img of=/dev/block/by-name/tee_a bs=4096 2>&1" | ForEach-Object { Info $_ }
 Sh 'sync' | Out-Null
