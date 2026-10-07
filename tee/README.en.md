@@ -192,7 +192,7 @@ because it is the cost of **NoGZ killing GZ** itself ✓
 | | |
 |---|---|
 | ❌ **Don't** | use a KVM-enabled phone as a daily driver |
-| ✅ **Good for** | a spare / test / dedicated-VM phone |
+| ✅ **Good for** | a spare / idle / dedicated-VM phone |
 | ✅ **Or** | accept "hardware video decoding unavailable" |
 | ✅ **Want both** | go the [mainline Linux](../docs/06-mainline.md) route (different trade-offs) |
 

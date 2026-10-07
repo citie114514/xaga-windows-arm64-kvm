@@ -28,7 +28,7 @@
 > | | |
 > |---|---|
 > | ❌ **Not suitable** | a daily-driver phone |
-> | ✅ **Suitable** | a spare / test / dedicated-VM phone |
+> | ✅ **Suitable** | a spare / idle / dedicated-VM phone |
 > | ✅ **Or** | accept "hardware video decode unavailable" |
 > | ✅ **Want both** | go the [mainline Linux](docs/06-mainline.md) route |
 >

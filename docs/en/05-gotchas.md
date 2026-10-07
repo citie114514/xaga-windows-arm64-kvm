@@ -612,7 +612,7 @@ After the Android kernel is raised to EL2 (which KVM requires):
 | | |
 |---|---|
 | ❌ **Don't** | use a KVM-enabled phone as a daily driver |
-| ✅ **Good for** | a spare / test / dedicated-VM phone |
+| ✅ **Good for** | a spare / idle / dedicated-VM phone |
 | ✅ **Or** | accept "hardware video codecs unavailable" |
 | ✅ **Want both** | go the [mainline Linux](06-mainline.md) route |
 
