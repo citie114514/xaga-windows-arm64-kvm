@@ -573,6 +573,51 @@ fastboot reboot
 
 > 兜底二：设备还有 **B 槽**，`tee_b` 从未改动，是天然的第二个副本。
 
+## 🔙 回退方式二：adb + dd 刷回原厂（不进 fastboot，全程可录屏）
+
+> 2026-10-07 实测：备用机（NoGZ 补丁运行中）→ 刷回原厂 → 重启，全流程 2 分钟内完成 ✓
+> 适合系统还能正常启动时使用（比如「想临时要回录屏 / 串流」）；fastboot 方式适合系统起不来的情况。
+
+```bash
+# ① 推送原厂 tee 备份到手机
+adb push tee_a_backup.img /data/local/tmp/tee_stock_restore.img
+
+# ② 手机端核对哈希（必须与备份时记录的原厂值一致，刷错基座 = 白折腾）
+adb shell su -c 'sha256sum /data/local/tmp/tee_stock_restore.img'
+
+# ③ dd 刷入 + sync
+adb shell su -c 'dd if=/data/local/tmp/tee_stock_restore.img of=/dev/block/by-name/tee_a bs=4096 && sync'
+
+# ④ 回读校验（必须与原厂哈希一致）
+adb shell su -c 'dd if=/dev/block/by-name/tee_a bs=4096 2>/dev/null | sha256sum'
+
+# ⑤ 清理临时文件并重启
+adb shell su -c 'rm /data/local/tmp/tee_stock_restore.img'
+adb reboot
+```
+
+**重启后的验证（与刷入补丁时正好反向）**：
+
+```bash
+adb shell su -c 'ls -l /dev/kvm'      # No such file ✗ —— KVM 没了（GZ 拿回 EL2）
+adb shell su -c 'ls /dev/gz_kree'     # 存在 —— GZ 活了
+adb shell screenrecord --time-limit 5 /data/local/tmp/test.mp4
+adb shell ls -l /data/local/tmp/test.mp4   # 非 0 字节 ✓ —— 录屏/硬编解码恢复
+```
+
+> 💡 **实测对照表（同一台备用机，2026-10-07）**：
+>
+> | | 补丁状态（tee_a = 补丁版） | 刷回原厂后（tee_a = 原厂） |
+> |---|---|---|
+> | `tee_a` sha256 | `f1511dca…`（rk 补丁） | `f8f286f1…`（原厂） |
+> | `/dev/kvm` | ✅ 存在（10, 232） | ❌ 消失 |
+> | `/dev/gz_kree` | 不存在 | ✅ 存在 |
+> | 录屏 5 秒 | 0 字节 ✗ | **1 449 918 字节 ✓** |
+> | 开机 | 第二屏卡 1~2 分钟（正常） | 正常速度 |
+>
+> 这就是第 13 条「KVM 与硬件编解码互斥」的实机演示：**刷哪个 tee 就是选哪个代价**，
+> 而且随时可以双向切换 —— 补丁和原厂备份都留在手里就行。
+
 ---
 
 # 关于这些文件

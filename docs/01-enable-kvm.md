@@ -215,10 +215,22 @@ after  : f1511dcad9820397abb1dc843d8fa70f6284f3c3c58aa4bedd7c8c49b54d1689   (补
 ### 回滚方法（留着备用）
 
 ```bash
+# ① 推送原厂备份
 adb push ./backup/tee_a.img /data/local/tmp/tee_stock.img
-adb shell su -c 'dd if=/data/local/tmp/tee_stock.img of=/dev/block/by-name/tee_a bs=4096'
+
+# ② 手机端核对哈希（必须与备份时记录的原厂值一致）
+adb shell su -c 'sha256sum /data/local/tmp/tee_stock.img'
+
+# ③ dd 刷入 + 回读校验 + 清理 + 重启
+adb shell su -c 'dd if=/data/local/tmp/tee_stock.img of=/dev/block/by-name/tee_a bs=4096 && sync'
+adb shell su -c 'dd if=/dev/block/by-name/tee_a bs=4096 2>/dev/null | sha256sum'
+adb shell su -c 'rm /data/local/tmp/tee_stock.img'
 adb reboot
 ```
+
+> 2026-10-07 备用机实测：补丁 → 原厂全流程 2 分钟内完成，重启后 `/dev/kvm` 消失、
+> 录屏（硬编解码）恢复 —— 完整实测数据与验证命令见
+> [`tee/README.md`](../tee/README.md) 的「回退方式二」一节 ✓
 
 还可以切到 **B 槽**（`tee_b` 未改动，天然兜底）。
 
