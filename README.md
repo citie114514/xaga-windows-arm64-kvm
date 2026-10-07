@@ -433,11 +433,19 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 
 ---
 
-## 致谢
+## 致谢与溯源
 
-- [`MT6895-Mainline`](https://github.com/MT6895-Mainline) —— 这台机器的主线移植项目，也是 NoGZ 补丁工具的上游
-- [`mtk-mod-tee-nogz`](https://github.com/MT6895-Mainline/mtk-mod-tee-nogz) —— ATF NoGZ 补丁的构建/签名工具（本项目的一键脚本封装了它）
+NoGZ 补丁工具的演进链（本仓库是最新一代）：
+
+- [`woaphone/mtk-mod-tee-nogz`](https://github.com/woaphone/mtk-mod-tee-nogz) —— **真原项目**：
+  搞清 ATF→EL2 交接机理并做出 NoGZ 补丁工具（yunluo / peral 两个 profile，附带 Codex skill）
+- [`MT6895-Mainline/mtk-mod-tee-nogz`](https://github.com/MT6895-Mainline/mtk-mod-tee-nogz) ——
+  其 fork：新增 xaga profile（`bd4b13a7…` 基座批次）与 ATF-only 发行（[v1.0 release](https://github.com/MT6895-Mainline/mtk-mod-tee-nogz/releases/tag/v1.0)）
+- **本仓库** —— 在上游基础上新增 xagapro（`f8f286f1…`）/ shuilanA15（`a91f5ded…`）
+  两个基座的 profile 逆向、实机验证与全流程自动化
+  （一键构建/刷入/回退、lk 配对处理、完整疑难解答与实测数据）
 - [`kasnria001/pwnage24mtk`](https://github.com/kasnria001/pwnage24mtk) —— MTK 证书签名绕过工具
+- [`MT6895-Mainline`](https://github.com/MT6895-Mainline) —— 这台机器的主线移植项目
 - [kde-yyds](https://space.bilibili.com/2008726064)（GitHub: [kde-yyds](https://github.com/kde-yyds)）—— 同机主线 Linux 进展记录，本项目的灵感来源
 
 ## License

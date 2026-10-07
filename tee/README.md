@@ -123,6 +123,7 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_a bs=4096 2>/dev/null | sha256sum'
 |---|---|
 | `f8f286f1…`（原厂基座） | `tee_nogz_rk_5M.img` ✓ |
 | `a91f5ded…` | `tee_nogz_shuilanA15_5M.img` ✓ |
+| `bd4b13a7…` | 上游 [MT6895-Mainline v1.0 release](https://github.com/MT6895-Mainline/mtk-mod-tee-nogz/releases/tag/v1.0) 的 `tee_nogz_legacy-xaga.img`（ATF-only 格式，3.5 MB，需按其 [SKILL.md](https://github.com/MT6895-Mainline/mtk-mod-tee-nogz) 的说明补零后使用）|
 | 其它 | ✗ **不要刷**，按 [docs/02](../docs/02-build-and-sign.md) 自己构建 |
 
 ---
