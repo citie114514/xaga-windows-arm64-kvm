@@ -73,7 +73,7 @@ $isEsd = $wim.EndsWith('.esd')
 Info "映像文件: $wim $(if($isEsd){'(ESD)'})"
 
 $wimInfo = & dism /Get-WimInfo "/WimFile:$wim" 2>&1
-# 解析出索引/名称（兼容中英文，且冒号前后可能有空格）
+# 解析出索引/名称（兼容中文与 English 两种输出，且冒号前后可能有空格）
 $images = @()
 $cur = $null
 foreach ($line in $wimInfo) {
