@@ -171,32 +171,7 @@ A Windows install ISO is **bootable** (El Torito + `EFI\BOOT\BOOTAA64.EFI`), so 
 
 ---
 
-## 7. 🟠 `adb push` to `/data/media/0/` is permission denied
-
-**Symptom**
-```
-adb: error: stat failed when trying to push to /data/media/0/DroidVM/win.vhdx: Permission denied
-```
-
-**Cause**
-`/data/media/0` is a root-only directory; adb's shell user cannot write there.
-
-**Fix**
-Push somewhere the shell can write, then move it as root (**a rename within the same filesystem
-is instant**):
-
-```bash
-adb push win.vhdx /data/local/tmp/win.vhdx
-adb shell su -c 'mv /data/local/tmp/win.vhdx /data/media/0/DroidVM/'
-```
-
-> Side note: `/storage/emulated/0/...` is a **FUSE mount**, while `/data/media/0/...` is the
-> **native path** pointing at the same file. QEMU using the native path bypasses the FUSE layer.
-> (Measured read throughput: about the same, ~950 MB/s, but the native path is more robust.)
-
----
-
-## 8. 🟠 Time inside the VM becomes the year 2768
+## 7. 🟠 Time inside the VM becomes the year 2768
 
 **Symptom**
 The Windows taskbar shows `2768/12/24`.
@@ -221,7 +196,7 @@ set it by hand.
 
 ---
 
-## 9. 🟠 DroidVM's config system: three things you must keep apart
+## 8. 🟠 DroidVM's config system: three things you must keep apart
 
 The DroidVM app and the QEMU command line are **two mutually incompatible ways to launch a VM**.
 Mixing them always ends in a trap.
@@ -289,7 +264,7 @@ drops the entire entry.
 
 ---
 
-## 10. 🟡 `virtio-gpu-rutabaga-pci` crashes immediately
+## 9. 🟡 `virtio-gpu-rutabaga-pci` crashes immediately
 
 **Symptom**
 ```
@@ -309,17 +284,70 @@ Incidentally, `virtio-gpu-gl-pci` with `-display none` also reports
 
 ---
 
-## 11. 🔴 **The patch stops working after a ROM / OTA update**
+## 10. 🔴 **The patch stops working after a ROM / OTA update — it shows up as a *first-screen* hang, not a second-screen one**
+
+> **This entry is about "the patch was not accepted"** ✗
+> whereas "hangs at the second screen for 1–2 minutes" is **a different thing** (normal delay, see item 11) ✓
+> **Spend 30 seconds working out which one you have**, or you will waste a lot of time.
+
+### Step 1: 30-second self-check — first screen or second screen?
+
+**No PC needed — the screen alone tells you**:
+
+| What you see | Verdict | What to do |
+|---|---|---|
+| Stuck on the **first screen** (first logo) / black screen then **falls into fastboot** | ❌ **the patch was not accepted** — this is the entry you're reading | keep reading |
+| Stuck on the **second screen** (logo2 spinner) for 1–2 minutes, then boots by itself | ✅ **normal**, not this entry | **go to item 11**; wait the full 3 minutes, don't touch the power key |
+| Stuck on the second screen for more than 5 minutes with no change | ⚠️ may be a TEE-related issue | also keep reading, and see item 13 |
+
+> 🔑 **Why the test works**: ATF signature verification happens during the `bl2_ext` stage,
+> **long before the kernel starts**. **Never reaching the second screen ⇒ it may never have been
+> accepted**; **reaching the second screen ⇒ ATF was definitely accepted** ✓, and whatever follows is
+> just the boot process (delay / TEE initialisation).
+> So "it looks like a boot hang" **cannot** be used as evidence that the patch failed ✗.
+
+### Step 2: important corrections (settled by measurement, 2026-10-06 / 10-07)
+
+
+> 🛠 **Read this correction first (settled by measurements on 2026-10-06 / 10-07) — skipping it wastes your time:**
+> - After flashing the patch, **every** boot stalls at the **second screen** for 1–2 minutes before the system comes up (see item 11) ✓
+>   ⇒ "it looks like a boot hang" is **not** evidence that the patch failed ✗
+> - **A cross-base patch boots normally too** ✓ (measured 2026-10-07)
+>   ⇒ neither "always breaks" ✗ nor "unverified" ⚠️, but **measured and working** ✓ (see [tee/README.en.md](../../tee/README.en.md))
+> - Building a patch for your own base is still **recommended** ✓ — but the reason is **TEE OS version matching**, not "otherwise it hangs at the second screen" ✗
+
+### First, self-test: are you stuck at the "first screen" or the "second screen"? (30 seconds, no PC needed)
+
+| What you see | Verdict | What to do |
+|---|---|---|
+| Stuck at the **first screen** (first logo) / black screen, then **straight into fastboot** | ❌ **the patch was not accepted** — this is your entry | read "Cause" and "Fix" below |
+| Stuck at the **second screen** (logo2 / spinner) for 1–2 minutes, then boots by itself | ✅ normal (see item 11) | **wait the full 3 minutes**, don't touch the power key |
+| `adb devices` shows the device, but `sys.boot_completed=0` | ⏳ normal delay | keep waiting |
+
+> 🔑 **Why the rule holds**: ATF's signature check happens in the `bl2_ext` stage (**long before the kernel starts**).
+> No second screen ⇒ it may never have been accepted; second screen visible ⇒ ATF was definitely accepted ✓,
+> so the problem can only be later in the boot process (the delay, or TEE init). See item 11.
+
+With adb available, run the command-line self-test too:
+
+```bash
+# 1) Is the patch actually in effect?
+adb shell su -c 'ls -l /dev/kvm'        # present -> the patch is active ✓
+adb shell su -c 'ls -l /dev/gz_kree'    # present -> GZ still owns EL2, the patch is not active ✗
+
+# 2) Did the ROM change your base? (tee_b was never touched — use it as the reference)
+adb shell su -c 'dd if=/dev/block/by-name/tee_b bs=4096 2>/dev/null | sha256sum'
+#   identical to the value recorded when the patch was built -> base unchanged ✓
+```
 
 **Symptom**
 After flashing a new ROM, `/dev/kvm` is gone — or you flashed a patch **built from different
-firmware** into `tee_a` and it **looks like the device hangs at boot** (⚠️ but read item 12 first —
-the first boot after flashing a patch always hangs at the second screen for ~2 minutes ✗).
+firmware** into `tee_a` and it **looks like the device hangs at boot** (⚠️ use the self-test above to
+tell "first screen" from "second screen" first).
 
 **Cause**
 The NoGZ patch modifies the boot handover logic of the `atf` member inside the `tee` partition, so
-**a patch is built for the `tee` base it was built from** —— though a cross-base patch does boot ✓
-(measured 2026-10-07); it just needs the 1–2 minute wait.
+**a patch is built against one specific `tee` base**.
 
 Measured (same Redmi Note 11T Pro+, two devices compared):
 
@@ -340,24 +368,18 @@ Measured (same Redmi Note 11T Pro+, two devices compared):
 >
 > **So device 1's success CANNOT be used as evidence that cross-base works** ✗ —
 > it only demonstrates that **same-base works** ✓.
-> **The only genuinely cross-base case is device 2** ⚠️ (and that conclusion is unreliable, see below).
+> The one genuinely cross-base case was device 2 ⚠️ — and that verdict was unreliable (we didn't
+> wait long enough); the 2026-10-07 experiment settled it ✓.
 
 **Conclusion (counter-intuitive, but measured)**:
 
 - ✅ **A changed `lk` does not affect the patch** (device 1's `lk_a` was replaced; it still works)
 - ✅ **Changed `gz` / `dtbo` / `boot` / `system` don't either** (survived Android 15 → 16)
-- ❌ **A changed `tee` base does break it** — the only known "killer"
-- ⚠️ **The same firmware batch shares a base**, different batches may differ (the upstream `xaga`
+- ⚠️ **A changed `tee` base means the patch is no longer tailored** — it **still boots normally** ✓
+  (measured 2026-10-07), but it is a "works, not recommended" combination because the **TEE OS
+  versions may not match** ⚠️
+- ✅ **The same firmware batch shares a base**, different batches may differ (the upstream `xaga`
   profile's base `bd4b13a7…` is a third batch in this story); it is **not** "every device is different"
-
-> 🛠 **Important correction (2026-10-06)**: the "boot hang" in the last row **rested on unreliable
-> evidence**. Later measurements showed that **the first boot after flashing a patch normally hangs
-> at the second screen for nearly 2 minutes** (see item 12). At the time we didn't wait long enough
-> and declared it dead ✗.
-> And the 2026-10-07 experiment on device 1 has settled it: **a cross-base patch boots normally** ✓
-> —— not "it will fail" ✗, not "unverified" ⚠️, but **measured and working** ✓ (see [tee/README.en.md](../../tee/README.en.md)).
-> Recommending a patch built for your own base is still correct ✓ — the reason is **TEE OS version
-> matching**, not that it would hang.
 
 **The nastiest part: a ROM package with no `tee` image can still change it**
 
@@ -378,7 +400,7 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_a bs=4096 2>/dev/null | sha256sum'
 | Result | Next step |
 |---|---|
 | Unchanged | ✅ the patch still works, do nothing |
-| Changed | ❌ the patch is invalid → **dump the new `tee_a`/`lk_a`/`preloader_raw_a` and rebuild** (you cannot reuse another ROM's build) |
+| Changed | ⚠️ **dump the new `tee_a`/`lk_a`/`preloader_raw_a` and rebuild** (same base is the safest);<br>if you just want it working now, **a build from another base boots normally too** ✓ (measured 2026-10-07) — just give that first boot the full 3 minutes |
 
 **The simplest way to tell whether the base changed** — look at the untouched slot:
 
@@ -392,7 +414,7 @@ a built-in fallback).
 
 ---
 
-## 12. 🔴 **Every boot after flashing hangs at the second screen for 1–2 minutes — that is not a brick!**
+## 11. 🔴 **Every boot after flashing hangs at the second screen for 1–2 minutes — that is not a brick!**
 
 **Symptom**
 After flashing the NoGZ patch, **every** boot stops at the **second boot screen** (logo2 / spinner)
@@ -435,7 +457,7 @@ response from GZ**, times out, and then continues — hence "stuck but not dead"
 | Screen | hangs at the **second** screen (logo2) with a spinner | hangs at the **first** screen, or a black screen that **falls into fastboot** |
 | adb | **device visible** (`adb devices` shows the serial) | not visible, or already in fastboot |
 | Time | comes up by itself in 1–3 minutes | no change after 5+ minutes |
-| Action | **wait** ✓ | restore the backup (see the rollback section of [tee/README.md](../../tee/README.en.md)) |
+| Action | **wait** ✓ | **first go to item 10 and check the patch / base** (don't just restore the backup) → only restore the backup once that is ruled out (see the rollback section of [tee/README.md](../../tee/README.en.md)) |
 
 > 💡 Lesson: this project once wasted a recovery because it didn't wait long enough and treated
 > this as a real brick. **After flashing, give the first boot 3 minutes.**
@@ -456,6 +478,7 @@ kernel starts -> first screen -> second screen
 ```
 Never reaches the second screen (stuck on the first / falls into fastboot)
     => might be "not accepted" -- signature / base / a corrupted partition write
+    => go to item 10 and troubleshoot (it has a 30-second self-test)
 
 Reaches the second screen (logo2)
     => ATF was definitely accepted ✓
@@ -469,7 +492,74 @@ Reaches the second screen (logo2)
 
 ---
 
-## 14. 🔴 **Enabling KVM breaks hardware video decoding — don't use it on a daily driver**
+## 12. 🔴 The host `bcdboot` cannot write the boot files: it wants `EFI_EX`, which old images don't have
+
+**Symptom**
+On a Windows host with **Secure Boot enabled and the 2023 PCA installed**, writing boot files for an
+**older ARM64 image** such as Win10 LTSC 2021 makes `bcdboot` fail outright:
+
+```
+BFSVC: Using Ex bins because SB is on, BFSVC_USE_EX_BINS is set, and 2023 PCA is in DB.
+BFSVC: Using source OS version a00004a610001
+BFSVC: Unable to open file G:\Windows\boot\EFI_EX\bootmgfw_EX.efi for read because the file or path does not exist
+BFSVC Error: Failed to validate boot manager checksum (G:\Windows\boot\EFI_EX\bootmgfw_EX.efi)! Error code = 0xc1
+BFSVC Error: ServicingBootFiles failed. Error = 0xc1
+Failure when attempting to copy boot files.
+```
+
+**Cause**
+The host `bcdboot` decides to use the "Ex bins" (boot manager with the 2023 PCA ✓) based on the
+**host's own** Secure Boot state. But the `EFI_EX\` directory only exists in newer Windows ✗ —
+**it is simply not present in the Win10 LTSC 2021 image** ✗ → the copy fails.
+
+> This does not contradict [docs/03](03-windows-vm.md)'s "x64 `bcdboot` can write ARM64 boot files"
+> — that holds when the **host has no SB / no 2023 PCA** ✓; here the host policy blocks it ✗.
+
+**Fix: skip `bcdboot` and lay it out by hand (fully under your control)**
+
+```powershell
+# Administrator PowerShell; $E = ESP drive letter (e.g. V:), $W = Windows partition letter (e.g. G:)
+New-Item -ItemType Directory -Force -Path "$E\EFI\Boot"           | Out-Null
+New-Item -ItemType Directory -Force -Path "$E\EFI\Microsoft\Boot" | Out-Null
+
+# Copy the ARM64 boot manager straight out of the image
+Copy-Item "$W\Windows\boot\EFI\bootmgfw.efi" "$E\EFI\Microsoft\Boot\bootmgfw.efi" -Force
+Copy-Item "$W\Windows\boot\EFI\bootmgfw.efi" "$E\EFI\Boot\bootaa64.efi" -Force   # fallback path
+Copy-Item "$W\Windows\boot\EFI\boot.stl"     "$E\EFI\Microsoft\Boot\boot.stl" -Force
+
+# Build the BCD by hand (createstore, then osloader, then bootmgr)
+$BCD = "$E\EFI\Microsoft\Boot\BCD"
+Remove-Item $BCD -Force -ErrorAction SilentlyContinue
+bcdedit /createstore $BCD
+$g = (bcdedit /store $BCD /create /d "Windows 10 ARM64" /application osloader | Select-String '\{[0-9a-fA-F-]+\}').Matches[0].Value
+bcdedit /store $BCD /set "$g" device     "partition=$W"
+bcdedit /store $BCD /set "$g" path       "\Windows\system32\winload.efi"
+bcdedit /store $BCD /set "$g" osdevice   "partition=$W"
+bcdedit /store $BCD /set "$g" systemroot "\Windows"
+bcdedit /store $BCD /create "{bootmgr}" /d "Windows Boot Manager"      # <- do NOT add /application!
+bcdedit /store $BCD /set "{bootmgr}" device       "partition=$E"
+bcdedit /store $BCD /set "{bootmgr}" path         "\EFI\Microsoft\Boot\bootmgfw.efi"
+bcdedit /store $BCD /set "{bootmgr}" default      "$g"
+bcdedit /store $BCD /set "{bootmgr}" displayorder "$g"
+bcdedit /store $BCD /set "{bootmgr}" timeout      5
+```
+
+**Three traps inside the trap**:
+
+1. **`/application bootmgr` is invalid syntax** ✗ — the only legal types are `osloader` / `resume` /
+   `startup` / `bootsector` / `fwbootmgr` and so on ✗. To create a boot manager you must write
+   **`/create {bootmgr} /d "..."`** ✓ (the error is `The application type switch specified is not valid.`)
+2. **Writing the BCD on the ESP requires administrator rights** ✗ — without elevation you get
+   `The boot configuration data store could not be opened. Access is denied.`
+3. **Check the architecture before copying boot files** ✓ — `bootmgfw.efi`'s PE machine must be
+   **`0xAA64`**; never take it from the host's `C:\Windows\boot\EFI\` (that one is x64 ✗)
+
+**Bonus**: the image's own `boot\EFI\` also contains `zh-CN\*.mui` (the localised boot menu),
+`memtest.efi` and `winsipolicy.p7b` — copying those over as well makes it more complete ✓.
+
+---
+
+## 13. 🔴 **Enabling KVM breaks hardware video codecs — don't use it on a daily driver**
 
 **Symptoms** (measured on real hardware, three states: before / after / after reverting)
 
@@ -480,22 +570,23 @@ Reaches the second screen (logo2)
 | QQ chat images | ✅ | ❌ **don't display** | ✅ restored |
 | Internal storage | ✅ | ⚠️ may not mount at boot | ✅ restored |
 | App data | ✅ | ⚠️ may be corrupted | —— |
+| **Screen recording / camera video** | ✅ | ❌ **produces 0-byte files** | ✅ restored |
 
 **Reverting to stock restores everything** ✓ — so the fault really is caused by the patch ✓
 
 **Cause**
 
-```
-MediaTek's hardware codec (mtk-vcodec) depends on:
-   · mtk_sec_heap        secure memory
-   · gz_tz_system        TEE services provided by GZ
-   · gz_trusty_mod
-   · cmdq_sec_drv        secure command queue
+MediaTek's hardware codecs (mtk-vcodec) go through this dependency chain:
 
-The NoGZ patch stops GZ from getting EL2  ->  that chain breaks ✗
-   ->  hardware decoder init fails ✗
-   ->  Moonlight / UU Remote / QQ images / thumbnails  all affected ✗
 ```
+mtk_sec_heap      secure memory
+gz_tz_system      TEE services provided by GZ
+gz_trusty_mod
+cmdq_sec_drv      secure command queue
+```
+
+The NoGZ patch stops GZ from getting EL2 → the chain breaks ✗ → hardware codec init fails ✗
+→ Moonlight / UU Remote / QQ images / thumbnails, screen recording / camera video all affected ✗
 
 **Precise mechanism** (why it is specifically *hardware* codecs that break):
 
@@ -530,21 +621,13 @@ After the Android kernel is raised to EL2 (which KVM requires):
 > A same-base patch (built from this very device's firmware) **does it too** ✓
 > It is the inherent cost of **NoGZ killing GZ** ✓
 
-**Why it wasn't caught earlier**
-
-The early A/B comparison only tested:
-KeyMint hardware keys, Gatekeeper, Widevine, fingerprint, Secure Element
-— **all fine** ✓ — which led to the conclusion "doesn't affect daily use" ✗
-
-**But it never tested hardware video decoding** ✗ — which is the part that actually breaks ✓
-
 **How to use it properly**
 
 | | |
 |---|---|
 | ❌ **Don't** | use a KVM-enabled phone as a daily driver |
 | ✅ **Good for** | a spare / test / dedicated-VM phone |
-| ✅ **Or** | accept "hardware video decoding unavailable" |
+| ✅ **Or** | accept "hardware video codecs unavailable" |
 | ✅ **Want both** | go the [mainline Linux](06-mainline.md) route |
 
 **Rollback**: flash the backed-up `tee_a` back and reboot → every function returns ✓

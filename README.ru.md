@@ -299,7 +299,7 @@ adb forward tcp:5900 tcp:5900                    # VNC жёстко на 5900
 | [docs/ru/02-build-and-sign.md](docs/ru/02-build-and-sign.md) | **Подробно о сборке и подписи**: что меняет патч NoGZ, как подписывает pwnage, что делать с превышением размера |
 | [docs/ru/03-windows-vm.md](docs/ru/03-windows-vm.md) | Диск Windows 11 ARM64: развёртывание образа, загрузочные файлы, обход TPM, внедрение драйверов |
 | [docs/ru/04-usage.md](docs/ru/04-usage.md) | **Использование**: разбор каждого параметра QEMU, VNC, сеть, тюнинг производительности |
-| [docs/ru/05-gotchas.md](docs/ru/05-gotchas.md) | **Список подводных камней** (12 пунктов, все реально пройдены) |
+| [docs/ru/05-gotchas.md](docs/ru/05-gotchas.md) | **Список подводных камней** (13 пунктов, все реально пройдены) |
 | [docs/ru/06-mainline.md](docs/ru/06-mainline.md) | Продвинутый путь: mainline Linux + KDE |
 | [tee/](tee/) | **Готовые образы `tee`** (подписанные, можно записывать) + таблица совместимости баз |
 | [profiles/](profiles/) | Профили прошивок (определения смещений ATF/LK) |

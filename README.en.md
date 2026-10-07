@@ -307,7 +307,7 @@ that is the least painful path.
 | [docs/en/02-build-and-sign.md](docs/en/02-build-and-sign.md) | **Build & signing walkthrough**: what the NoGZ patch changes, how pwnage signs, handling oversized images |
 | [docs/en/03-windows-vm.md](docs/en/03-windows-vm.md) | The Windows 11 ARM64 disk: applying the image, writing boot files, bypassing TPM, injecting drivers |
 | [docs/en/04-usage.md](docs/en/04-usage.md) | **Usage**: every QEMU flag explained, VNC, networking, performance tuning |
-| [docs/en/05-gotchas.md](docs/en/05-gotchas.md) | **Gotcha list** (12 entries) — every trap we actually hit |
+| [docs/en/05-gotchas.md](docs/en/05-gotchas.md) | **Gotcha list** (13 entries) — every trap we actually hit |
 | [docs/en/06-mainline.md](docs/en/06-mainline.md) | Going further: mainline Linux + KDE on the same device |
 | [tee/](tee/) | **Prebuilt signed `tee` images** + the base-firmware compatibility table + `verify.sh` |
 | [profiles/](profiles/) | Firmware profiles (ATF/LK offset definitions) |

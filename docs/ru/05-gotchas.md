@@ -173,33 +173,7 @@ QEMU вообще не запускается.
 
 ---
 
-## 7. 🟠 `adb push` в `/data/media/0/` — отказ в доступе
-
-**Симптом**
-```
-adb: error: stat failed when trying to push to /data/media/0/DroidVM/win.vhdx: Permission denied
-```
-
-**Причина**
-`/data/media/0` — каталог, доступный только root; пользователь `shell`, под которым работает adb,
-туда писать не может.
-
-**Решение**
-Сначала скопируйте туда, куда `shell` может писать, затем переместите под root
-(**переименование внутри одной файловой системы мгновенно**):
-
-```bash
-adb push win.vhdx /data/local/tmp/win.vhdx
-adb shell su -c 'mv /data/local/tmp/win.vhdx /data/media/0/DroidVM/'
-```
-
-> Кстати: `/storage/emulated/0/...` — это **монтирование FUSE**, а `/data/media/0/...` — **нативный
-> путь** к тому же файлу. Используя нативный путь, QEMU обходит слой FUSE.
-> (Измеренная скорость чтения примерно одинакова, ~950 MB/s, но нативный путь стабильнее.)
-
----
-
-## 8. 🟠 Время внутри ВМ становится 2768 годом
+## 7. 🟠 Время внутри ВМ становится 2768 годом
 
 **Симптом**
 Панель задач Windows показывает `2768/12/24`.
@@ -224,7 +198,7 @@ Set-Date -Date "2026-10-06 03:20:00"
 
 ---
 
-## 9. 🟠 Система конфигурации DroidVM: три вещи, которые нужно различать
+## 8. 🟠 Система конфигурации DroidVM: три вещи, которые нужно различать
 
 Приложение DroidVM и командная строка QEMU — это **два взаимно несовместимых способа запуска ВМ**.
 Смешивать их — гарантированно наступить на грабли.
@@ -292,7 +266,7 @@ DroidVM проверяет по собственной строгой схеме
 
 ---
 
-## 10. 🟡 `virtio-gpu-rutabaga-pci` мгновенно падает
+## 9. 🟡 `virtio-gpu-rutabaga-pci` мгновенно падает
 
 **Симптом**
 ```
@@ -312,7 +286,30 @@ QEMU умирает моментально, без вывода.
 
 ---
 
-## 11. 🔴 **Патч перестаёт работать после записи ROM / OTA**
+## 10. 🔴 **Патч перестаёт работать после записи ROM / OTA — это проявляется как остановка на *первом* экране, а не на втором**
+
+> **Эта запись про случай «патч не был принят»** ✗
+> а «висит на втором экране 1–2 минуты» — **это другое** (нормальная задержка, пункт 11) ✓
+> **Потратьте 30 секунд, чтобы понять, какой у вас случай**, иначе потеряете много времени.
+
+### Шаг 1: самопроверка за 30 секунд — первый экран или второй?
+
+**ПК не нужен — достаточно экрана**:
+
+| Что видно | Вердикт | Что делать |
+|---|---|---|
+| Стоит на **первом экране** (первый логотип) / чёрный экран, затем **сам уходит в fastboot** | ❌ **патч не принят** — это ваша запись | читайте дальше |
+| Стоит на **втором экране** (крутилка logo2) 1–2 минуты, затем сам загружается | ✅ **нормально**, это не эта запись | **к пункту 11**; ждите все 3 минуты, не трогайте кнопку питания |
+| Стоит на втором экране более 5 минут без изменений | ⚠️ возможно, связано с TEE | тоже читайте дальше и смотрите пункт 13 |
+
+> 🔑 **Почему проверка работает**: проверка подписи ATF происходит на этапе `bl2_ext`,
+> **намного раньше старта ядра**. **Второй экран не достигается ⇒ возможно, патч вообще не был
+> принят**; **второй экран достигается ⇒ ATF точно принят** ✓, а дальше — только процесс загрузки
+> (задержка / инициализация TEE).
+> Поэтому «выглядит как зависание загрузки» **нельзя** использовать как доказательство сбоя патча ✗.
+
+### Шаг 2: важные исправления (установлено измерениями 2026-10-06 / 10-07)
+
 
 **Симптом**
 После прошивки нового ROM `/dev/kvm` исчезает — либо вы записали в `tee_a` патч, **собранный из
@@ -394,7 +391,7 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_b bs=4096 2>/dev/null | sha256sum'
 
 ---
 
-## 12. 🔴 **Каждая загрузка после записи патча висит на втором экране 1–2 минуты — это не кирпич!**
+## 11. 🔴 **Каждая загрузка после записи патча висит на втором экране 1–2 минуты — это не кирпич!**
 
 **Симптом**
 После записи патча NoGZ **каждая** загрузка останавливается на **втором экране загрузки** (logo2 /
@@ -469,7 +466,70 @@ GZ**, не дожидается, срабатывает таймаут — и з
 
 ---
 
-## 14. 🔴 **Включение KVM ломает аппаратное декодирование видео — не используйте на основной машине**
+## 12. 🔴 Хостовый `bcdboot` не может записать загрузочные файлы: он требует `EFI_EX`, которого в старых образах нет
+
+**Симптом**
+На хосте с Windows, где **включён Secure Boot и установлен PCA 2023**, попытка записать загрузчик
+для **старого ARM64-образа** (например Win10 LTSC 2021) валит `bcdboot`:
+
+```
+BFSVC: Using Ex bins because SB is on, BFSVC_USE_EX_BINS is set, and 2023 PCA is in DB.
+BFSVC: Using source OS version a00004a610001
+BFSVC: Unable to open file G:\Windows\boot\EFI_EX\bootmgfw_EX.efi for read because the file or path does not exist
+BFSVC Error: Failed to validate boot manager checksum (G:\Windows\boot\EFI_EX\bootmgfw_EX.efi)! Error code = 0xc1
+BFSVC Error: ServicingBootFiles failed. Error = 0xc1
+Failure when attempting to copy boot files.
+```
+
+**Причина**
+Хостовый `bcdboot` решает использовать «Ex bins» (загрузчик с PCA 2023) на основании
+**собственного** состояния Secure Boot. А каталог `EFI_EX\` есть только в более новых Windows —
+**в образе Win10 LTSC 2021 его просто нет** → копирование падает.
+
+**Решение: обойти `bcdboot` и разложить файлы вручную**
+
+```powershell
+# Admin PowerShell; $E = буква ESP (напр. V:), $W = буква раздела Windows (напр. G:)
+New-Item -ItemType Directory -Force -Path "$E\EFI\Boot"           | Out-Null
+New-Item -ItemType Directory -Force -Path "$E\EFI\Microsoft\Boot" | Out-Null
+
+Copy-Item "$W\Windows\boot\EFI\bootmgfw.efi" "$E\EFI\Microsoft\Boot\bootmgfw.efi" -Force
+Copy-Item "$W\Windows\boot\EFI\bootmgfw.efi" "$E\EFI\Boot\bootaa64.efi" -Force
+Copy-Item "$W\Windows\boot\EFI\boot.stl"     "$E\EFI\Microsoft\Boot\boot.stl" -Force
+
+$BCD = "$E\EFI\Microsoft\Boot\BCD"
+Remove-Item $BCD -Force -ErrorAction SilentlyContinue
+bcdedit /createstore $BCD
+$g = (bcdedit /store $BCD /create /d "Windows 10 ARM64" /application osloader | Select-String '\{[0-9a-fA-F-]+\}').Matches[0].Value
+bcdedit /store $BCD /set "$g" device     "partition=$W"
+bcdedit /store $BCD /set "$g" path       "\Windows\system32\winload.efi"
+bcdedit /store $BCD /set "$g" osdevice   "partition=$W"
+bcdedit /store $BCD /set "$g" systemroot "\Windows"
+bcdedit /store $BCD /create "{bootmgr}" /d "Windows Boot Manager"
+bcdedit /store $BCD /set "{bootmgr}" device       "partition=$E"
+bcdedit /store $BCD /set "{bootmgr}" path         "\EFI\Microsoft\Boot\bootmgfw.efi"
+bcdedit /store $BCD /set "{bootmgr}" default      "$g"
+bcdedit /store $BCD /set "{bootmgr}" displayorder "$g"
+bcdedit /store $BCD /set "{bootmgr}" timeout      5
+```
+
+**Три подводных камня внутри этого камня**:
+
+1. **`/application bootmgr` — неверный синтаксис** ✗ — допустимые типы только `osloader` / `resume` /
+   `startup` / `bootsector` / `fwbootmgr` и т. п. Создавать менеджер загрузки нужно как
+   **`/create {bootmgr} /d "..."`** (при неверном варианте:
+   `The application type switch specified is not valid.`)
+2. **Запись BCD на ESP требует администратора** ✗ — без повышения прав получите
+   `The boot configuration data store could not be opened. Access is denied.`
+3. **Перед копированием проверьте архитектуру** — PE machine у `bootmgfw.efi` должен быть **`0xAA64`**;
+   ни в коем случае не берите файл из хостового `C:\Windows\boot\EFI\` (там x64)
+
+**Бонус**: рядом в образе лежат `zh-CN\*.mui` (локализация меню загрузки), `memtest.efi`,
+`winsipolicy.p7b` — их тоже стоит скопировать.
+
+---
+
+## 13. 🔴 **Включение KVM ломает аппаратное декодирование видео — не используйте на основной машине**
 
 **Симптомы** (измерено на реальном устройстве, три состояния: до / после / после отката)
 
@@ -529,14 +589,6 @@ venc / vdec от MTK при open():
 > ⚠️ **Главное: это не связано с совпадением базы** ✗
 > Патч под ту же базу (собранный из прошивки самого этого устройства) **делает то же самое** ✓
 > Это неотъемлемая цена того, что **NoGZ убивает GZ** ✓
-
-**Почему это не обнаружили раньше**
-
-Раннее сравнение A/B проверяло только:
-аппаратные ключи KeyMint, Gatekeeper, Widevine, отпечаток, Secure Element
-— **всё в порядке** ✓ — и из этого был сделан вывод «на повседневное использование не влияет» ✗
-
-**Но аппаратное декодирование видео не проверялось** ✗ — а ломается именно оно ✓
 
 **Как использовать правильно**
 

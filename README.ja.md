@@ -295,7 +295,7 @@ adb forward tcp:5900 tcp:5900                    # VNC は 5900 に固定
 | [docs/ja/02-build-and-sign.md](docs/ja/02-build-and-sign.md) | **ビルドと署名の詳細**：NoGZ パッチが何を変えるか、pwnage での署名、サイズ超過の扱い |
 | [docs/ja/03-windows-vm.md](docs/ja/03-windows-vm.md) | Windows 11 ARM64 のディスク：イメージ展開、ブートファイル、TPM 回避、ドライバ注入 |
 | [docs/ja/04-usage.md](docs/ja/04-usage.md) | **使い方**：QEMU の各オプション解説、VNC、ネットワーク、性能チューニング |
-| [docs/ja/05-gotchas.md](docs/ja/05-gotchas.md) | **落とし穴リスト**（12 項目、すべて実際に踏んだもの） |
+| [docs/ja/05-gotchas.md](docs/ja/05-gotchas.md) | **落とし穴リスト**（13 項目、すべて実際に踏んだもの） |
 | [docs/ja/06-mainline.md](docs/ja/06-mainline.md) | 発展編：メインライン Linux + KDE への道 |
 | [tee/](tee/) | **完成済み `tee` イメージ**（署名済み、直接書き込み可）+ 対応ベース一覧 |
 | [profiles/](profiles/) | ファームウェアプロファイル（ATF/LK のオフセット定義） |
