@@ -258,7 +258,7 @@ straight from the ISO, entirely from the command line:
 ```
 
 The script handles: partitioning → `dism /Apply-Image /Compact:ON` → **`bcdboot` to write
-the boot files** → **LabConfig to bypass TPM checks** → **driver injection** → verifying
+the boot files** → **driver injection** → verifying
 `bootmgfw.efi` is actually ARM64.
 
 > ⚠️ The easiest trap here: disks produced by tools like Dism++ have an **empty ESP**, so
@@ -300,7 +300,7 @@ that is the least painful path.
 | [README.ru.md](README.ru.md) | Russian version of this README |
 | [docs/en/01-enable-kvm.md](docs/en/01-enable-kvm.md) | **Full KVM enablement**: the principle, verification-chain analysis, flashing and validation |
 | [docs/en/02-build-and-sign.md](docs/en/02-build-and-sign.md) | **Build & signing walkthrough**: what the NoGZ patch changes, how pwnage signs, handling oversized images |
-| [docs/en/03-windows-vm.md](docs/en/03-windows-vm.md) | The Windows 11 ARM64 disk: applying the image, writing boot files, bypassing TPM, injecting drivers |
+| [docs/en/03-windows-vm.md](docs/en/03-windows-vm.md) | The Windows 11 ARM64 disk: applying the image, writing boot files, injecting drivers |
 | [docs/en/04-usage.md](docs/en/04-usage.md) | **Usage**: every QEMU flag explained, VNC, networking, performance tuning |
 | [docs/en/05-gotchas.md](docs/en/05-gotchas.md) | **Gotcha list** (13 entries) — every trap we actually hit |
 | [docs/en/06-mainline.md](docs/en/06-mainline.md) | Going further: mainline Linux + KDE on the same device |

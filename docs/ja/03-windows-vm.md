@@ -118,7 +118,12 @@ BFSVC: Copy files which lack a version: y  G:\Windows\boot\EFI -> ...\EFI\Micros
 | `S:\EFI\Microsoft\Boot\BCD` | 存在 |
 | BCD の `path` | `\Windows\system32\winload.efi` |
 
-### 2.4 TPM / SecureBoot / RAM チェックの回避
+### 2.4 TPM / SecureBoot / RAM チェックの回避（任意）
+
+> **この手順は任意です**：ハードウェア要件チェックは **Windows セットアップ プログラム** 内で行われます。
+> 本手順は `dism /Apply-Image` でイメージを VHDX に直接適用し、セットアップを一切実行しないため、
+> これらのレジストリ値がなくてもシステムは正常に起動・動作します。「ISO から起動してインストールする」
+> 従来方式に切り替える場合にのみ必須になります。
 
 Windows 11 は初回起動でハードウェア要件を検査します。レジストリをオフラインで書いて回避します：
 

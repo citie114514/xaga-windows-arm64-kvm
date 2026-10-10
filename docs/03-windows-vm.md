@@ -114,9 +114,22 @@ BFSVC: Copy files which lack a version: y  G:\Windows\boot\EFI -> ...\EFI\Micros
 | `S:\EFI\Microsoft\Boot\BCD` | 存在 |
 | BCD 里的 `path` | `\Windows\system32\winload.efi` |
 
-### 2.4 绕过 TPM / SecureBoot / RAM 检查
+### 2.4 绕过 TPM / SecureBoot / RAM 检查（可选）
 
-Windows 11 首次启动会检查硬件要求。离线写注册表绕过：
+> **这一步是可选的**：硬件要求检查发生在 **Windows 安装程序（Setup）** 里。
+> 本流程用 `dism /Apply-Image` 直接把映像释放进 VHDX，**从头到尾不跑安装程序**，
+> 所以即使不写这些注册表键，系统照样正常启动、正常用。
+> 只有当你改用「挂 ISO 走传统安装流程」时，这一步才是必须的。
+
+**保留它的两个理由**（写了无害）：
+
+1. 重置此电脑（Reset this PC）/ OOBE 重跑等场景（Reset this PC）等场景可能重新触发硬件检查，提前写上更稳
+2. 成本为零——三条命令
+
+如果跳过此步后一切正常，说明你用不到它；遇到「这台电脑不满足运行 Windows 11 的最低系统要求」
+再回来补写并重放系统即可。
+
+离线写注册表（可选执行）：
 
 ```powershell
 reg load HKLM\OFFLINESYS G:\Windows\System32\config\SYSTEM
@@ -126,8 +139,6 @@ foreach ($n in 'BypassTPMCheck','BypassSecureBootCheck','BypassRAMCheck','Bypass
 reg query 'HKLM\OFFLINESYS\Setup\LabConfig'
 reg unload HKLM\OFFLINESYS
 ```
-
-不写这个的话，开机第一步就卡在「这台电脑不满足运行 Windows 11 的最低系统要求」。
 
 ### 2.5 注入 virtio 驱动
 

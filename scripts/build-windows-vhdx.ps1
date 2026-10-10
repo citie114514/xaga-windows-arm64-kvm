@@ -1,10 +1,10 @@
 ﻿<#
 .SYNOPSIS
-    一键从 Windows 11 ARM64 ISO 制作可直接给 QEMU 启动的 VHDX（含引导 + virtio 驱动 + TPM 绕过）
+    一键从 Windows 11 ARM64 ISO 制作可直接给 QEMU 启动的 VHDX（含引导 + virtio 驱动 + 可选的 TPM 检查绕过）
 
 .DESCRIPTION
     不需要装虚拟机、不需要在 VM 里跑安装程序。全程命令行：
-      ISO → VHDX → 分区 → 释放映像(CompactOS) → bcdboot 写引导 → LabConfig 绕过 TPM → 注入 virtio 驱动
+      ISO → VHDX → 分区 → 释放映像(CompactOS) → bcdboot 写引导 → LabConfig（可选，防重置/OOBE 场景） → 注入 virtio 驱动
 
     产出 win.vhdx 直接推到手机，用 scripts/boot-win.sh 启动即可。
 
@@ -206,7 +206,7 @@ Ok "BCD 已生成 ✓"
 if (Test-Path $fbEfi) { Ok "兜底路径 EFI\Boot\bootaa64.efi 已生成 ✓" }
 
 # ============================================================================
-Section "绕过 TPM / SecureBoot / RAM 检查（LabConfig）"
+Section "绕过 TPM / SecureBoot / RAM 检查（LabConfig，可选——dism 直释流程不跑安装程序，此步非必须）"
 
 & reg load 'HKLM\OFFLINESYS' 'G:\Windows\System32\config\SYSTEM' | Out-Null
 foreach ($n in 'BypassTPMCheck','BypassSecureBootCheck','BypassRAMCheck','BypassCPUCheck','BypassStorageCheck') {
@@ -215,7 +215,7 @@ foreach ($n in 'BypassTPMCheck','BypassSecureBootCheck','BypassRAMCheck','Bypass
 $check = & reg query 'HKLM\OFFLINESYS\Setup\LabConfig' 2>&1
 $check | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
 & reg unload 'HKLM\OFFLINESYS' | Out-Null
-Ok 'LabConfig 已写入（不写的话首次开机会卡在"这台电脑不满足 Windows 11 要求"）'
+Ok 'LabConfig 已写入（可选预防项：重置/OOBE 等场景可能重新触发硬件检查）'
 
 # ============================================================================
 Section "注入 virtio ARM64 驱动"

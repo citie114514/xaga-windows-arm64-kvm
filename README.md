@@ -281,7 +281,7 @@ adb shell su -c 'cat /proc/misc | grep kvm'
 .\build-windows-vhdx.ps1 -Iso D:\Win11_ARM64.iso -DriversDir .\virtio-arm64-w11
 ```
 
-脚本自动完成：分区 → `dism /Apply-Image /Compact:ON` → **`bcdboot` 写引导** → **LabConfig 绕过 TPM** → **注入驱动** → 校验 `bootmgfw.efi` 是 ARM64。
+脚本自动完成：分区 → `dism /Apply-Image /Compact:ON` → **`bcdboot` 写引导** → **注入驱动** → 校验 `bootmgfw.efi` 是 ARM64。
 
 > ⚠️ 这一步最容易踩的坑：Dism++ 之类工具释放出来的盘 **ESP 是空的**，必须自己 `bcdboot`，否则开机找不到可引导设备。
 

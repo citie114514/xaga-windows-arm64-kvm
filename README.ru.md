@@ -254,7 +254,7 @@ VHDX собирается прямо из ISO, полностью из кома�
 ```
 
 Скрипт делает всё сам: разметка → `dism /Apply-Image /Compact:ON` →
-**запись загрузочных файлов через `bcdboot`** → **обход проверок TPM через LabConfig** →
+**запись загрузочных файлов через `bcdboot`** →
 **внедрение драйверов** → проверка, что `bootmgfw.efi` действительно ARM64.
 
 > ⚠️ Самая частая ловушка здесь: у дисков, полученных инструментами вроде Dism++,
@@ -296,7 +296,7 @@ adb forward tcp:5900 tcp:5900                    # VNC жёстко на 5900
 | [README.ja.md](README.ja.md) | Японская версия README |
 | [docs/ru/01-enable-kvm.md](docs/ru/01-enable-kvm.md) | **Полный процесс включения KVM**: принцип, разбор цепочки проверок, запись и верификация |
 | [docs/ru/02-build-and-sign.md](docs/ru/02-build-and-sign.md) | **Подробно о сборке и подписи**: что меняет патч NoGZ, как подписывает pwnage, что делать с превышением размера |
-| [docs/ru/03-windows-vm.md](docs/ru/03-windows-vm.md) | Диск Windows 11 ARM64: развёртывание образа, загрузочные файлы, обход TPM, внедрение драйверов |
+| [docs/ru/03-windows-vm.md](docs/ru/03-windows-vm.md) | Диск Windows 11 ARM64: развёртывание образа, загрузочные файлы, внедрение драйверов |
 | [docs/ru/04-usage.md](docs/ru/04-usage.md) | **Использование**: разбор каждого параметра QEMU, VNC, сеть, тюнинг производительности |
 | [docs/ru/05-gotchas.md](docs/ru/05-gotchas.md) | **Список подводных камней** (13 пунктов, все реально пройдены) |
 | [docs/ru/06-mainline.md](docs/ru/06-mainline.md) | Продвинутый путь: mainline Linux + KDE |

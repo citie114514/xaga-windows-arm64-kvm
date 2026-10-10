@@ -119,7 +119,13 @@ The post-build checklist (**all must pass**):
 | `S:\EFI\Microsoft\Boot\BCD` | exists |
 | The BCD `path` entry | `\Windows\system32\winload.efi` |
 
-### 2.4 Bypass the TPM / SecureBoot / RAM checks
+### 2.4 Bypass the TPM / SecureBoot / RAM checks (optional)
+
+> **This step is optional**: the hardware requirement checks live inside the
+> **Windows Setup program**. This flow applies the image straight into the VHDX with
+> `dism /Apply-Image` and never runs Setup, so the system boots and works fine even
+> without these registry keys. It only becomes mandatory if you switch to the
+> traditional "boot the ISO and install" flow.
 
 Windows 11 checks hardware requirements on first boot. Bypass it by writing the registry offline:
 

@@ -250,7 +250,7 @@ adb shell su -c 'cat /proc/misc | grep kvm'
 ```
 
 スクリプトが自動で行うこと：パーティション作成 → `dism /Apply-Image /Compact:ON` →
-**`bcdboot` でブートファイルを書き込み** → **LabConfig で TPM チェックを回避** →
+**`bcdboot` でブートファイルを書き込み** →
 **ドライバ注入** → `bootmgfw.efi` が ARM64 であることを検証。
 
 > ⚠️ ここで最もハマりやすい罠：Dism++ などで展開したディスクは **ESP が空**です。
@@ -291,7 +291,7 @@ adb forward tcp:5900 tcp:5900                    # VNC は 5900 に固定
 | [README.ru.md](README.ru.md) | ロシア語版 README |
 | [docs/ja/01-enable-kvm.md](docs/ja/01-enable-kvm.md) | **KVM 有効化の全手順**：原理、検証チェーンの解析、書き込みと確認 |
 | [docs/ja/02-build-and-sign.md](docs/ja/02-build-and-sign.md) | **ビルドと署名の詳細**：NoGZ パッチが何を変えるか、pwnage での署名、サイズ超過の扱い |
-| [docs/ja/03-windows-vm.md](docs/ja/03-windows-vm.md) | Windows 11 ARM64 のディスク：イメージ展開、ブートファイル、TPM 回避、ドライバ注入 |
+| [docs/ja/03-windows-vm.md](docs/ja/03-windows-vm.md) | Windows 11 ARM64 のディスク：イメージ展開、ブートファイル、ドライバ注入 |
 | [docs/ja/04-usage.md](docs/ja/04-usage.md) | **使い方**：QEMU の各オプション解説、VNC、ネットワーク、性能チューニング |
 | [docs/ja/05-gotchas.md](docs/ja/05-gotchas.md) | **落とし穴リスト**（13 項目、すべて実際に踏んだもの） |
 | [docs/ja/06-mainline.md](docs/ja/06-mainline.md) | 発展編：メインライン Linux + KDE への道 |

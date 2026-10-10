@@ -13,3 +13,4 @@ conversation.md
 !tee/*.img
 !lk-archive/*.img
 !tee/*.bin
+kvm-work
