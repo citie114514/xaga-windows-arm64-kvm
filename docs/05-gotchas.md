@@ -657,6 +657,87 @@ NoGZ tee (KVM ✓) + vendor_boot swcodec 补丁：
 
 ---
 
+## 14. 🟡 图形化前端方案：DroidVM 配置编辑 与 Limbo（Android 16 可用分支）
+
+不想用命令行的用户，有两条图形化路线。以下为 2026-10-12 实测结论。
+
+### 14a. DroidVM（推荐）：配置编辑能力已完善
+
+DroidVM（`cn.classfun.droidvm`）新版已支持：
+
+- **VNC 端口可编辑**：VM 配置里直接改 VNC 端口，不用再手动 socat/forward
+- **网络可桥接**：可通过 `br-wifi` 添加桥接网络（VM 直接进局域网，不再是纯 user-mode NAT）
+- **QEMU 参数**：底层仍是 `qemu-system-aarch64.real`，可通过配置界面调整
+
+**新创建 VM 的常见报错与解法**：
+
+```
+qemu-system-aarch64.real: cfi.pflash01 device '/machine/virt.flash1'
+  requires 67108864 bytes, pflash1 block backend provides 786432 bytes
+```
+
+这是 **pflash1（AAVMF vars/ NVRAM）文件尺寸不对**——DroidVM 新建 VM 默认生成了 768KB
+的小 vars 文件，而 AAVMF 要求 64MB。解法：把 VM 的 pflash1 指向仓库/目录里现成的
+64MB vars 文件（本项目用的 `flash1-64M.vars`，见 [03-windows-vm.md](03-windows-vm.md)
+的固件尺寸说明，即 gotcha 8d）。flash0（代码固件）同理必须 64MB。
+
+### 14b. Limbo：官方版在 Android 16 会崩，用社区维护分支
+
+**官方 Limbo（`com.limbo.emu.main` v0.0.1 及更早）在 Android 16 (HyperOS) 上启动即崩**：
+
+```
+FORTIFY: pthread_mutex_lock called on a destroyed mutex
+Fatal signal 6 (SIGABRT) in tid xxx (RenderThread / hwuiTask0)
+```
+
+崩溃点在 **UI 渲染线程**（还没到 QEMU 引擎），根因是旧版 SDL2/native UI 库与
+Android 16 不兼容。日志特征：`/storage/emulated/0/limbolog.txt` 里全是
+`pthread_mutex_lock called on a destroyed mutex`。
+
+**解法**：改用社区维护的 Limbo 分支 ——
+[SlugAir928437/limbo](https://github.com/SlugAir928437/limbo)（GPL-3.0）。
+2026-10-12 在 Android 16 实机验证：**UI 完整渲染、所有配置页（主板/存储/启动/图形）
+可编辑、进程稳定不崩** ✓
+
+**Limbo 与 DroidVM 的取舍**：
+
+| | DroidVM | Limbo（社区分支） |
+|---|---|---|
+| KVM 加速 | ✅ | ❌（纯 TCG，跑 Windows 慢 10 倍+） |
+| 配置自由度 | QEMU 参数级 | 图形化、够用 |
+| 网络 | 可 br-wifi 桥接 | user 模式 NAT |
+| 适用场景 | **跑 Windows** | 轻量 Linux 体验/图形化尝鲜 |
+
+结论：**跑 Windows 一律用 DroidVM**；Limbo 仅作为图形化玩具/备用前端。
+
+### 14c. ⚠️ 附：无线 adb「固定端口」的正确姿势（Scene 用户必读）
+
+很多人在 Scene 里开「无线 adb 调试（固定端口 33445）」，**手机一重启就连不上**。
+原因：Scene 的固定端口是设置一次性属性 `service.adb.tcp.port` 并重启 adbd ——
+**该属性不跨重启持久**，系统重启后 adbd 回到仅 USB 模式。
+
+**根治**（需要 root，一次永久生效）：
+
+```bash
+su -c 'setprop persist.adb.tcp.port 33445'
+# 之后重启 adbd 或重启手机均可；每次开机 adbd 自动监听 33445
+```
+
+验证：`getprop persist.adb.tcp.port` 应输出 33445；
+`netstat -tln | grep 33445`（root）应看到 LISTEN。
+
+注意区分三套容易混淆的东西：
+
+| 机制 | 端口 | 持久性 | 说明 |
+|---|---|---|---|
+| `service.adb.tcp.port` | 任意（如 33445） | ❌ 不跨重启 | Scene 固定端口用的就是它 |
+| `persist.adb.tcp.port` | 任意 | ✅ 每次开机自动生效 | **推荐**，需 root 设置一次 |
+| 开发者选项「无线调试」 | **每次随机** | ❌ | Android 11+ 配对式，与本方案无关 |
+
+PC 侧连接：`adb connect 手机IP:33445`。
+
+---
+
 ## 附：几个「看起来像坑其实不是」的事
 
 | 现象 | 真相 |
