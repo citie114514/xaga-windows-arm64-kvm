@@ -194,9 +194,10 @@ bash tee/verify.sh <serial>        # 指定设备
 > ⚠️ **刷完补丁后开机，第二屏会卡约 1~2 分钟**才进系统 —— 这是正常的，
 > **不是变砖，等着就好**。千万不要急着进 fastboot，那会打断启动。
 >
-> 💡 **2026-10-07 新观察**：多次开机之后，这段延迟**可能会缩短甚至基本消失**
-> （备用机实测：KVM 仍在，编解码失效不变，但开机速度明显恢复）。
-> 机理尚未确认（推测是最初几次开机叠加了一次性的系统收尾工作 / 服务重试退避），
+> 💡 **这段延迟的来源已定位到 `vendor_boot`（2026-10-18 同机对照实测）**：
+> 刷了 [vendor_boot 软编回退补丁](docs/07-vendor-boot-swcodec.md) 之后，第二屏等待明显缩短甚至消失；
+> 把 `vendor_boot` 刷回原厂，等待又回来了。
+> 推测是 venc/vdec 驱动 probe 时等 VCP 响应超时，驱动不绑定就不必等了。
 > 但**判断规则不变：卡第二屏 + adb 可见 = 等 3 分钟再说**。
 >
 > ⚠️ **刷了会不会影响日用应用检测（银行 App / Play Integrity / DRM）？实测答案：不会** ——
@@ -218,9 +219,12 @@ cd D:\mtk-mod-tee-nogz
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
+# 克隆本项目（一键脚本就在里面）
+git clone https://github.com/citie114514/xaga-windows-arm64-kvm  D:\xaga-kvm
+
 # 一键跑完：环境检查 → 备份 → dump → 构建 → 签名 → 校验 → 刷入 → 验证提示
 # （首次运行会自动给 mtk-mod-tee-nogz 打两个必要补丁：sign_all_flag 定义 + xagapro profile）
-cd <本仓库>\scripts
+cd D:\xaga-kvm\scripts
 .\kvm-oneclick.ps1 -Profile xagapro -TeeFixRepo D:\mtk-mod-tee-nogz -PwnageDir D:\pwnage24mtk
 ```
 
@@ -259,8 +263,8 @@ adb shell su -c 'cat /proc/misc | grep kvm'
 >
 > 刷完补丁后的**最初几次**开机都会停在**开机第二屏**（logo2 / 转圈），
 > **1~2 分钟没有任何动静** ✗ —— 看起来完全像「卡二 / 变砖」。
-> 💡 **多次开机后这段延迟可能缩短**（2026-10-07 备用机观察，机理未确认），
-> 但**第一次刷完时请按 2 分钟预期**，不要心存侥幸。
+> 💡 **刷了 [vendor_boot 软编补丁](docs/07-vendor-boot-swcodec.md) 之后这段等待会明显变短**
+> （刷回原厂又变慢，同机对照实测），但**第一次刷完时请按 2 分钟预期**，不要心存侥幸。
 >
 > **千万不要**在这时按「音量下 + 电源」进 fastboot ✗ —— **那会打断启动**，
 > 把一个本来能好的开机变成真的进不了系统 ✗。**等 3 分钟** ✓

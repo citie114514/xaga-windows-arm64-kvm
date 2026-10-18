@@ -436,6 +436,17 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_b bs=4096 2>/dev/null | sha256sum'
 **这不是一次性现象** —— 只要补丁还在，每次开机都会经历这段等待 ✓
 （可以理解为：GZ 拿不到 EL2，启动链每次都要等那个握手超时）。
 
+> 🛠 **2026-10-18 更正：这段等待的来源已定位到 `vendor_boot`** ✓
+>
+> 同一台设备对照实测：刷了 [vendor_boot 软编回退补丁](07-vendor-boot-swcodec.md) 之后，
+> 第二屏等待明显缩短甚至消失；把 `vendor_boot` 刷回原厂，等待又回来。
+>
+> 推测机理：venc/vdec 驱动 probe 时用 IPI 向 VCP 查帧尺寸，而 VCP 的 READY 握手依赖 EL2/安全世界链；
+> NoGZ 之后握手断，probe 阻塞到超时（约 1~2 分钟）。软编补丁让驱动匹配不上、不绑定，
+> probe 不发生，于是不再等。
+>
+> ⚠️ **「等 3 分钟」的规则照样有效** —— 原厂 `vendor_boot` + NoGZ tee 的组合仍然是慢的。
+
 ### 怎么区分「正常的慢」和「真的坏」
 
 | 现象 | 正常慢 ✓ | 真失败 ✗ |

@@ -105,7 +105,9 @@ adb shell su -c 'dd if=/dev/block/by-name/tee_a bs=4096 2>/dev/null | sha256sum'
 后面只是 GZ 握手超时的等待。**千万不要**按「音量下+电源」进 fastboot——
 那会把一个本来能好的开机硬生生变成砖。（本项目曾因此误诊过一次"卡二"。）
 
-💡 多次开机后延迟可能缩短甚至消失（2026-10-07 备用机观察，机理未确认）。
+💡 这段延迟来自 venc/vdec 驱动 probe 等 VCP 握手超时；刷了 vendor_boot 软编补丁
+（`scripts/flash-vendor-boot.ps1`）后会明显缩短甚至消失，刷回原厂又变慢（2026-10-18 同机对照）。
+原厂 vendor_boot + NoGZ tee 的组合仍然慢，所以等 3 分钟的规则不变。
 
 ## Step 4：验证成功
 

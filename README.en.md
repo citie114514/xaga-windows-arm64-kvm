@@ -174,6 +174,11 @@ patched / you need to build your own**.
 > the system — that is normal, **not a brick, just wait**. Do not rush into fastboot; that interrupts
 > the boot.
 >
+> 💡 **That wait traces back to `vendor_boot` (same-device A/B test, 2026-10-18)**: after flashing the
+> [vendor_boot software-codec patch](docs/07-vendor-boot-swcodec.md) it shrinks or disappears; flash
+> stock `vendor_boot` back and it returns. Likely the venc/vdec probe timing out on the VCP handshake —
+> no driver binding, no wait. The 3-minute rule still stands.
+>
 > ⚠️ **Does flashing affect everyday app integrity checks (banking apps / Play Integrity / DRM)?
 > Measured answer: no** — the patch only changes who owns EL2 and never touches the TEE. Full
 > measurements, the base-compatibility table and the rollback procedure are in
@@ -195,9 +200,13 @@ cd D:\mtk-mod-tee-nogz
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
+# Clone this project (the one-click script lives inside)
+git clone https://github.com/citie114514/xaga-windows-arm64-kvm  D:\xaga-kvm
+
 # Run everything: env check → backup → dump → build → sign → verify → flash → hints
-cd <this repo>\scripts
-.\kvm-oneclick.ps1 -Profile xaga -TeeFixRepo D:\mtk-mod-tee-nogz -PwnageDir D:\pwnage24mtk
+# (the first run patches two upstream gaps automatically: sign_all_flag + the xagapro profile)
+cd D:\xaga-kvm\scripts
+.\kvm-oneclick.ps1 -Profile xagapro -TeeFixRepo D:\mtk-mod-tee-nogz -PwnageDir D:\pwnage24mtk
 ```
 
 The script walks through these stages, **printing and verifying at every step**:
@@ -227,6 +236,8 @@ adb shell su -c 'cat /proc/misc | grep kvm'
 >
 > Measured: **150 seconds** from reboot to `sys.boot_completed=1`, with 120 seconds of a
 > completely static screen in between. Afterwards `/dev/kvm` shows up normally ✓
+> 💡 Flashing the [vendor_boot software-codec patch](docs/07-vendor-boot-swcodec.md) shortens this
+> noticeably; flashing stock `vendor_boot` back brings it back.
 >
 > **Do not** press Volume Down + Power to enter fastboot at that moment ✗ —
 > **it interrupts the boot** and turns a boot that would have succeeded into one that really

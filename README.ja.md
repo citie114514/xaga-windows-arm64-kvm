@@ -169,6 +169,11 @@ bash tee/verify.sh <serial>        # デバイスを指定
 > 変数が増え、しかもハードウェアデコードが壊れる代償は同じです（第 13 項参照）。
 > どうしても使うなら**先にバックアップ**し、**3 分待ってください**。
 >
+> 💡 **この待ち時間の正体は `vendor_boot` でした（同一機体での比較、2026-10-18）**：
+> [vendor_boot ソフトコーデックパッチ](docs/07-vendor-boot-swcodec.md) を書き込むと大幅に短くなり、
+> 元の `vendor_boot` に戻すとまた遅くなります。venc/vdec の probe が VCP のハンドシェイクで
+> タイムアウトしているためと推測されます。3 分待つルールは変わりません。
+>
 > ⚠️ **書き込み後は毎回の起動で 2 回目の画面が約 2 分停止**してからシステムに入ります ——
 > これは正常で、**文鎮ではありません。待てば大丈夫です**。
 > 慌てて fastboot に入らないでください。起動を中断させてしまいます。
@@ -194,9 +199,13 @@ cd D:\mtk-mod-tee-nogz
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
+# 本プロジェクトを clone（ワンクリックスクリプトはこの中にあります）
+git clone https://github.com/citie114514/xaga-windows-arm64-kvm  D:\xaga-kvm
+
 # 一気に実行：環境確認 → バックアップ → dump → ビルド → 署名 → 検証 → 書き込み → 確認手順の表示
-cd <本リポジトリ>\scripts
-.\kvm-oneclick.ps1 -Profile xaga -TeeFixRepo D:\mtk-mod-tee-nogz -PwnageDir D:\pwnage24mtk
+# （初回実行時に上流の不足点を自動で補います：sign_all_flag 定義 + xagapro profile）
+cd D:\xaga-kvm\scripts
+.\kvm-oneclick.ps1 -Profile xagapro -TeeFixRepo D:\mtk-mod-tee-nogz -PwnageDir D:\pwnage24mtk
 ```
 
 スクリプトは以下を実行し、**各段階で出力と検証**を行います：
