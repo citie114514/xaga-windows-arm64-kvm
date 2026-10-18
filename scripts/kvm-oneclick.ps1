@@ -420,5 +420,8 @@ Write-Host @"
        adb reboot
      还可以切到 B 槽（tee_b 未改动，天然兜底）。
 
+  想让录屏 / 串流 / QQ 图片也恢复（KVM 与编解码共存）：
+       .\flash-vendor-boot.ps1        ← 一键刷 vendor_boot 软编回退补丁（docs/07）
+
   下一步：装 Windows 11 ARM64 虚拟机 → 见 docs/03-windows-vm.md
 "@ -ForegroundColor Green

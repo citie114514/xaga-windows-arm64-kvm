@@ -305,6 +305,13 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 > 磁盘丢了或换新盘时，直接跑 `restore-disk.sh <镜像>` 即可 ——它会自动识别
 > VHDX / QCOW2 / VHD、检查 `/data` 剩余空间、必要时确认覆盖，最后算 sha256 校验。
 
+> 💡 **想要 KVM 和录屏 / 串流 / QQ 图片同时可用？**
+> 再刷一个 vendor_boot 软编回退补丁（改 dtb 2 字节，框架回退软编）：
+> ```powershell
+> .\scripts\flash-vendor-boot.ps1
+> ```
+> 详见 [docs/07-vendor-boot-swcodec.md](docs/07-vendor-boot-swcodec.md)
+
 首次开机会跑 OOBE，5~15 分钟。到「连接网络」那页选 **【我没有 Internet 连接】** →
 **【继续执行受限设置】** 建本地账户最省事。
 
@@ -331,6 +338,7 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | [scripts/](scripts/) | 一键脚本（构建 VHDX / 提驱动 / 开 KVM）|
 | [docs/07-vendor-boot-swcodec.md](docs/07-vendor-boot-swcodec.md) | **vendor_boot 软编回退补丁（已验证）**：让 KVM 和录屏 / 串流 / 图片共存 |
 | [scripts/write-boot-manual.ps1](scripts/write-boot-manual.ps1) | **绕开 `bcdboot` 手工写 UEFI 引导**（宿主开了 Secure Boot 时，`bcdboot` 会因缺 `EFI_EX` 而失败 —— 见 [docs/05](docs/05-gotchas.md) 第 12 条）|
+| [scripts/flash-vendor-boot.ps1](scripts/flash-vendor-boot.ps1) | **一键刷 vendor_boot 软编回退补丁**：KVM 与录屏/串流共存（自动备份+基座匹配+回读校验）|
 | [scripts/phone/](scripts/phone/) | **手机端脚本**：`boot-win.sh` 启动 / `stop-vm.sh` 停止 / `restore-disk.sh` 恢复磁盘 / `qemu-wrapper.sh` 让 DroidVM 应用自己也能跑 |
 
 ---

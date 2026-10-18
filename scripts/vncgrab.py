@@ -5,7 +5,7 @@ import sys
 sys.stdout.reconfigure(encoding='utf-8')
 from PIL import Image
 
-HOST, PORT = '127.0.0.1', 5900
+HOST, PORT = '127.0.0.1', int(__import__('os').environ.get('VNCPORT','5900'))
 
 
 def recvall(s, n):
@@ -78,7 +78,7 @@ for attempt in range(6):
     print('rects=%d pixels=%d' % (nrects, got))
     px_check = canvas.getcolors(maxcolors=1 << 24)
     print('  颜色数 =', len(px_check), ' 最多的3种:', sorted(px_check, reverse=True)[:3])
-    canvas.save(r'C:/Users/citie/xaga-kvm/vnc-%d.png' % attempt)
+    canvas.save(r'C:/Users/citie/xaga-kvm/win10-repair/vnc-%d.png' % attempt)
     frames += 1
     if len(px_check) > 60:      # 有明显内容就再多抓两帧
         continue

@@ -199,6 +199,7 @@ NoGZ tee + vendor_boot swcodec 补丁（2026-10-08 实测）：
 ```
 
 **→ 完整方案、成品与制作方法见 [docs/07-vendor-boot-swcodec.md](../docs/07-vendor-boot-swcodec.md)**
+> 一键刷入：`cd scripts; .\flash-vendor-boot.ps1`（自动备份原厂 vendor_boot_a + 基座匹配 + 回读校验）
 
 **剩余代价**：软编 CPU 占用高于硬编——1080p 无碍 ✓，4K/高帧率可能卡 ⚠️，串流延迟偏高 ⚠️。
 

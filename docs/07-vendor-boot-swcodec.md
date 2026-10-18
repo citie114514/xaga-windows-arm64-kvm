@@ -109,7 +109,24 @@ mediatek,mt6895-vcodec-enc → mediatek,mt6895-vcodec-en0
 - BL 已解锁
 - **备份了原厂 `vendor_boot_a`**（回退要用）
 
-### 刷入
+### 方式零：一键脚本（推荐）
+
+```powershell
+cd <本仓库>\scripts
+.\flash-vendor-boot.ps1
+```
+
+脚本会自动完成：设备身份核对 → 检查 `/dev/kvm` 前提 → **强制备份原厂 `vendor_boot_a` 并验哈希**
+→ 自动匹配仓库成品（基座不符时用你本机备份现场改 2 字节）→ 推送后验哈希 → `dd` 写入 → 回读比对
+→ 提示重启与验证命令。回滚镜像路径也会一并打印。
+
+```powershell
+.\flash-vendor-boot.ps1 -DryRun    # 只备份 + 准备镜像，不刷入
+.\flash-vendor-boot.ps1 -Yes       # 全自动（录屏用）
+.\flash-vendor-boot.ps1 -Patch .\vb-backup-xxx\vendor_boot_a.img   # 用备份回滚（恢复硬编）
+```
+
+### 刷入（手动方式）
 
 ```bash
 # 方式一：fastboot（推荐，快）

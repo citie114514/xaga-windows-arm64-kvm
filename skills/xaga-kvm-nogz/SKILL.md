@@ -144,7 +144,7 @@ adb shell su -c "/apex/com.android.virt/bin/crosvm --no-syslog run --disable-san
 **裸 NoGZ 组合**（tee 补丁 + 原厂 vendor_boot）：硬件视频编解码失效（VCP 握手断）——
 Moonlight ✗ UU远程 ✗ QQ图片 ✗ 录屏 0 字节 ✗。
 
-✅ **有已验证的解**：再刷 vendor_boot swcodec 回退补丁（docs/07，dtb 改 2 字节）→
+✅ **有已验证的解**：再刷 vendor_boot swcodec 回退补丁（`scripts/flash-vendor-boot.ps1`，docs/07，dtb 改 2 字节）→
 硬编解绑、框架回退软编 → **KVM 与录屏/串流/图片同时可用**。
 剩余代价：软编 CPU 占用高（1080p 无碍，4K 可能卡，串流延迟偏高）。
 
