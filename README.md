@@ -207,7 +207,32 @@ bash tee/verify.sh <serial>        # 指定设备
 
 ## 快速开始
 
-### 第 1 步：开启 KVM（一键脚本）
+### 第 1 步：开启 KVM
+
+#### 方式 A（推荐）：下载发行版压缩包，跑一个脚本
+
+[![Release](https://img.shields.io/github/v/release/citie114514/xaga-windows-arm64-kvm?label=%E4%B8%8B%E8%BD%BD%E5%8F%91%E8%A1%8C%E7%89%88)](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest)
+
+到 [Releases](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest) 下载 `xaga-kvm-release-*.zip`，解压后：
+
+- 双击 **`一键开KVM.bat`**（或手动 `cd scripts; .\run-oneclick.ps1`）
+
+包内已含全部工具（补丁工具、签名工具、成品 tee、vendor_boot、配对 lk、profiles），
+**不需要 clone 任何仓库**。脚本会自动：校验结构 → 检查 Python → 首次建 venv 装依赖
+→ 确保上游补丁 → 备份六分区 → dump → 构建 NoGZ → 签名（2× VALID）→ 裁剪 → 刷入 tee_a
+→ 回读校验 → 提示刷 vendor_boot。
+
+```powershell
+.\run-oneclick.ps1 -DryRun          # 只构建校验，不刷
+.\run-oneclick.ps1 -Yes             # 全自动（录屏用）
+.\run-oneclick.ps1 -SkipVendorBoot  # 不刷 vendor_boot
+```
+
+> 发行版里的 `README-发行版.md` 有中英日俄四语的使用说明与排错。
+
+#### 方式 B：从源码跑（开发者 / 想改脚本）
+
+> 这条路要自己 clone 三个仓库、手动建 venv。只想刷机的用方式 A 即可。
 
 ```powershell
 # 准备两个工具（都要单独下载）

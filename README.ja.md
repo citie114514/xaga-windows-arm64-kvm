@@ -187,7 +187,32 @@ bash tee/verify.sh <serial>        # デバイスを指定
 
 ## クイックスタート
 
-### ステップ 1：KVM を有効にする（ワンクリックスクリプト）
+### ステップ 1：KVM を有効にする
+
+#### 方法 A（推奨）：配布 ZIP をダウンロードして 1 つのスクリプトを実行
+
+[![Release](https://img.shields.io/github/v/release/citie114514/xaga-windows-arm64-kvm?label=release)](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest)
+
+[Releases](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest) から
+`xaga-kvm-release-*.zip` を取得して解凍し、**`一键开KVM.bat`** をダブルクリック
+（または `cd scripts; .\run-oneclick.ps1`）。
+
+必要なツールはすべて同梱（パッチツール、署名ツール、完成品 tee、vendor_boot、対応 lk、profiles）で、
+**リポジトリの clone は不要**です。スクリプトは構成検証 → Python 確認 → 初回に venv 作成 →
+上流パッチ適用 → 6 パーティションのバックアップ → dump → NoGZ ビルド → 署名（2× VALID）→
+トリム → tee_a 書き込み → 読み戻し検証 → vendor_boot の提案、まで自動で行います。
+
+```powershell
+.\run-oneclick.ps1 -DryRun          # ビルドと検証のみ
+.\run-oneclick.ps1 -Yes             # 全自動（録画用）
+.\run-oneclick.ps1 -SkipVendorBoot  # vendor_boot をスキップ
+```
+
+> 同梱の `README-发行版.md` に中英日露の使い方とトラブルシュートがあります。
+
+#### 方法 B：ソースから実行（開発者向け）
+
+> 3 つのリポジトリを clone し、venv を手動で作る経路です。書き込むだけなら方法 A で十分です。
 
 ```powershell
 # 2 つのツールを用意（どちらも別途ダウンロード）

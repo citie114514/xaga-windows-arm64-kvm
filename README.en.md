@@ -188,7 +188,31 @@ patched / you need to build your own**.
 
 ## Quick start
 
-### Step 1 — Enable KVM (one script)
+### Step 1 — Enable KVM
+
+#### Option A (recommended): download the release bundle, run one script
+
+[![Release](https://img.shields.io/github/v/release/citie114514/xaga-windows-arm64-kvm?label=release)](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest)
+
+Grab `xaga-kvm-release-*.zip` from [Releases](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest),
+extract it, then double-click **`一键开KVM.bat`** (or run `cd scripts; .\run-oneclick.ps1`).
+
+Every tool is bundled (patch tool, signing tool, prebuilt tee, vendor_boot, paired lk, profiles) —
+**no repo cloning needed**. The script validates the bundle, checks Python, creates a venv on first run,
+applies the upstream patch, then backs up six partitions → dumps → builds NoGZ → signs (2× VALID) →
+trims → flashes tee_a → verifies by readback → offers the vendor_boot patch.
+
+```powershell
+.\run-oneclick.ps1 -DryRun          # build & verify only
+.\run-oneclick.ps1 -Yes             # auto-confirm (screen recording)
+.\run-oneclick.ps1 -SkipVendorBoot  # skip the vendor_boot step
+```
+
+> The bundle ships `README-发行版.md` with zh/en/ja/ru usage and troubleshooting.
+
+#### Option B: run from source (developers)
+
+> This path clones three repos and builds a venv by hand. If you just want to flash, use Option A.
 
 ```powershell
 # Get the two tools (both are separate downloads)

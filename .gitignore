@@ -17,3 +17,6 @@ kvm-work
 
 !vendor_boot_a_swcodec.img
 !vendor_boot_a_orig.img
+
+tools-src/
+dist/

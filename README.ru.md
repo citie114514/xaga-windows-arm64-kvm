@@ -191,7 +191,31 @@ bash tee/verify.sh <serial>        # или укажите устройство 
 
 ## Быстрый старт
 
-### Шаг 1. Включить KVM (скрипт в один клик)
+### Шаг 1. Включить KVM
+
+#### Вариант A (рекомендуется): скачать архив релиза и запустить один скрипт
+
+[![Release](https://img.shields.io/github/v/release/citie114514/xaga-windows-arm64-kvm?label=release)](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest)
+
+Скачайте `xaga-kvm-release-*.zip` из [Releases](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest),
+распакуйте и дважды щёлкните **`一键开KVM.bat`** (или выполните `cd scripts; .\run-oneclick.ps1`).
+
+Все инструменты внутри (патчер, подписыватель, готовые tee, vendor_boot, парный lk, profiles) —
+**клонировать репозитории не нужно**. Скрипт проверит комплект, найдёт Python, при первом запуске
+создаст venv, применит апстрим-патч, затем: резервная копия шести разделов → dump → сборка NoGZ →
+подпись (2× VALID) → обрезка → запись tee_a → проверка чтением → предложение vendor_boot.
+
+```powershell
+.\run-oneclick.ps1 -DryRun          # только сборка и проверка
+.\run-oneclick.ps1 -Yes             # автоподтверждение (для записи экрана)
+.\run-oneclick.ps1 -SkipVendorBoot  # пропустить vendor_boot
+```
+
+> В архиве есть `README-发行版.md` с инструкциями на zh/en/ja/ru и разделом траблшутинга.
+
+#### Вариант B: из исходников (для разработчиков)
+
+> Этот путь требует клонирования трёх репозиториев и ручного venv. Если нужно просто прошить — используйте вариант A.
 
 ```powershell
 # Подготовьте два инструмента (скачиваются отдельно)
