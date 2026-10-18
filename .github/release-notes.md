@@ -1,10 +1,10 @@
 # v0.1.0 —— 一键开 KVM（发行版）
 
-不用 clone 任何仓库：下载下面的 zip，解压，双击 `一键开KVM.bat`。
+不用 clone 任何仓库：下载下面的 zip，解压，双击 `start-kvm.bat`。
 
 ## 包含内容
 
-- `一键开KVM.bat` + `scripts/run-oneclick.ps1` —— 唯一入口
+- `start-kvm.bat` + `scripts/run-oneclick.ps1` —— 唯一入口
 - `scripts/` —— kvm-oneclick / flash-tee / flash-vendor-boot / fix-upstream / 手机端脚本
 - `tools/mtk-mod-tee-nogz`（已打 xagapro profile + sign_all_flag 补丁）、`tools/pwnage24mtk`
 - `tee/` —— 两个实机验证过的成品（rk / shuilanA15）

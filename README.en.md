@@ -195,7 +195,7 @@ patched / you need to build your own**.
 [![Release](https://img.shields.io/github/v/release/citie114514/xaga-windows-arm64-kvm?label=release)](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest)
 
 Grab `xaga-kvm-release-*.zip` from [Releases](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest),
-extract it, then double-click **`一键开KVM.bat`** (or run `cd scripts; .\run-oneclick.ps1`).
+extract it, then double-click **`start-kvm.bat`** (or run `cd scripts; .\run-oneclick.ps1`).
 
 Every tool is bundled (patch tool, signing tool, prebuilt tee, vendor_boot, paired lk, profiles) —
 **no repo cloning needed**. The script validates the bundle, checks Python, creates a venv on first run,

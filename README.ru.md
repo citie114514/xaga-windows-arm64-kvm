@@ -198,7 +198,7 @@ bash tee/verify.sh <serial>        # или укажите устройство 
 [![Release](https://img.shields.io/github/v/release/citie114514/xaga-windows-arm64-kvm?label=release)](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest)
 
 Скачайте `xaga-kvm-release-*.zip` из [Releases](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest),
-распакуйте и дважды щёлкните **`一键开KVM.bat`** (или выполните `cd scripts; .\run-oneclick.ps1`).
+распакуйте и дважды щёлкните **`start-kvm.bat`** (или выполните `cd scripts; .\run-oneclick.ps1`).
 
 Все инструменты внутри (патчер, подписыватель, готовые tee, vendor_boot, парный lk, profiles) —
 **клонировать репозитории не нужно**. Скрипт проверит комплект, найдёт Python, при первом запуске

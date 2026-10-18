@@ -28,7 +28,7 @@ No repo cloning needed — one script does everything automatically.
 
 ### 使用
 
-双击 **`一键开KVM.bat`**，或手动运行：
+双击 **`start-kvm.bat`**，或手动运行（启动时先选语言：中文 / English / 日本語 / Русский）：
 
 ```powershell
 cd <解压目录>\scripts
@@ -84,7 +84,7 @@ cd <解压目录>\scripts
 
 ### Usage
 
-Double-click **`一键开KVM.bat`**, or run manually:
+Double-click **`start-kvm.bat`**, or run manually (it asks for your language first):
 
 ```powershell
 cd <extract dir>\scripts
@@ -140,7 +140,7 @@ Useful flags:
 
 ### 使い方
 
-**`一键开KVM.bat`** をダブルクリック、または手動で：
+**`start-kvm.bat`** をダブルクリック、または手動で（起動時に言語を選択）：
 
 ```powershell
 cd <解凍先>\scripts
@@ -196,7 +196,7 @@ cd <解凍先>\scripts
 
 ### Использование
 
-Двойной клик по **`一键开KVM.bat`**, либо вручную:
+Двойной клик по **`start-kvm.bat`**, либо вручную (сначала выбор языка):
 
 ```powershell
 cd <папка распаковки>\scripts

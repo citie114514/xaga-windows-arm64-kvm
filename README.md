@@ -215,7 +215,7 @@ bash tee/verify.sh <serial>        # 指定设备
 
 到 [Releases](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest) 下载 `xaga-kvm-release-*.zip`，解压后：
 
-- 双击 **`一键开KVM.bat`**（或手动 `cd scripts; .\run-oneclick.ps1`）
+- 双击 **`start-kvm.bat`**（或手动 `cd scripts; .\run-oneclick.ps1`）
 
 包内已含全部工具（补丁工具、签名工具、成品 tee、vendor_boot、配对 lk、profiles），
 **不需要 clone 任何仓库**。脚本会自动：校验结构 → 检查 Python → 首次建 venv 装依赖

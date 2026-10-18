@@ -2,7 +2,7 @@
 #  make-release.ps1 —— 构建发行版 zip（维护者用）
 #
 #  产出：dist\xaga-kvm-release-<日期>.zip
-#  内容：一键开KVM.bat + run-oneclick.ps1 + RELEASE-README（四语）
+#  内容：start-kvm.bat + run-oneclick.ps1 + RELEASE-README（四语）
 #        + scripts/（一键脚本全部）+ profiles/ + tee/ 成品 + vendor_boot 两份
 #        + lk-archive/ + tools/（mtk-mod-tee-nogz 已打补丁 + pwnage24mtk）
 #
@@ -38,7 +38,7 @@ Copy-Item (Join-Path $Root 'scripts')  (Join-Path $PkgRoot 'scripts') -Recurse
 Copy-Item (Join-Path $Root 'profiles') (Join-Path $PkgRoot 'profiles') -Recurse
 Copy-Item (Join-Path $Root 'tee')      (Join-Path $PkgRoot 'tee') -Recurse
 Copy-Item (Join-Path $Root 'lk-archive') (Join-Path $PkgRoot 'lk-archive') -Recurse
-foreach ($f in @('vendor_boot_a_swcodec.img', 'vendor_boot_a_orig.img', '一键开KVM.bat')) {
+foreach ($f in @('vendor_boot_a_swcodec.img', 'vendor_boot_a_orig.img', 'start-kvm.bat')) {
     Copy-Item (Join-Path $Root $f) (Join-Path $PkgRoot $f) -ErrorAction SilentlyContinue
 }
 Copy-Item (Join-Path $Root 'scripts\RELEASE-README.md') (Join-Path $PkgRoot 'README-发行版.md')

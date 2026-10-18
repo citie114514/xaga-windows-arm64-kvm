@@ -39,7 +39,7 @@ jobs:
           set -e
           mkdir -p stage/xaga-kvm
           cp -r scripts profiles tee lk-archive stage/xaga-kvm/
-          cp vendor_boot_a_swcodec.img vendor_boot_a_orig.img 一键开KVM.bat LICENSE stage/xaga-kvm/
+          cp vendor_boot_a_swcodec.img vendor_boot_a_orig.img start-kvm.bat LICENSE stage/xaga-kvm/
           cp scripts/RELEASE-README.md stage/xaga-kvm/README-发行版.md
           cp -r tools stage/xaga-kvm/tools
           # 剔除嵌套仓库与本机 venv

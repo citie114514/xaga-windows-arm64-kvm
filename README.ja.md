@@ -194,7 +194,7 @@ bash tee/verify.sh <serial>        # デバイスを指定
 [![Release](https://img.shields.io/github/v/release/citie114514/xaga-windows-arm64-kvm?label=release)](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest)
 
 [Releases](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest) から
-`xaga-kvm-release-*.zip` を取得して解凍し、**`一键开KVM.bat`** をダブルクリック
+`xaga-kvm-release-*.zip` を取得して解凍し、**`start-kvm.bat`** をダブルクリック
 （または `cd scripts; .\run-oneclick.ps1`）。
 
 必要なツールはすべて同梱（パッチツール、署名ツール、完成品 tee、vendor_boot、対応 lk、profiles）で、
