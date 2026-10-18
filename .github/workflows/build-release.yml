@@ -61,7 +61,7 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "release $TAG 已存在，覆盖资产"
           else
-            gh release create "$TAG" --title "$TAG" --notes-file dist/RELEASE-NOTES.md
+            gh release create "$TAG" --title "$TAG" --notes-file .github/release-notes.md
           fi
           gh release upload "$TAG" xaga-kvm-release.zip --clobber
 
