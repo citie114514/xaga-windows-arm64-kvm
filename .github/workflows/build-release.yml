@@ -1,0 +1,74 @@
+name: build-release
+
+# 打 tag 时自动打包发行版 zip 并上传到对应的 Release
+# 也可以手动触发（Actions → build-release → Run workflow）
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch upstream tools
+        run: |
+          set -e
+          mkdir -p tools
+          git clone --depth 1 https://github.com/MT6895-Mainline/mtk-mod-tee-nogz tools/mtk-mod-tee-nogz
+          git clone --depth 1 https://github.com/kasnria001/pwnage24mtk          tools/pwnage24mtk
+
+      - name: Patch upstream tools (idempotent)
+        run: python scripts/fix-upstream.py --tee-fix tools/mtk-mod-tee-nogz --proj .
+
+      - name: Assemble bundle
+        run: |
+          set -e
+          mkdir -p stage/xaga-kvm
+          cp -r scripts profiles tee lk-archive stage/xaga-kvm/
+          cp vendor_boot_a_swcodec.img vendor_boot_a_orig.img 一键开KVM.bat LICENSE stage/xaga-kvm/
+          cp scripts/RELEASE-README.md stage/xaga-kvm/README-发行版.md
+          cp -r tools stage/xaga-kvm/tools
+          # 剔除嵌套仓库与本机 venv
+          find stage -type d -name '.git'  -prune -exec rm -rf {} + || true
+          find stage -type d -name '.venv' -prune -exec rm -rf {} + || true
+          cd stage
+          zip -qr ../xaga-kvm-release.zip xaga-kvm
+          cd ..
+          ls -lh xaga-kvm-release.zip
+          echo "ZIP_SIZE=$(stat -c%s xaga-kvm-release.zip)" >> "$GITHUB_ENV"
+
+      - name: Publish to release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          TAG="${GITHUB_REF#refs/tags/}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG 已存在，覆盖资产"
+          else
+            gh release create "$TAG" --title "$TAG" --notes-file dist/RELEASE-NOTES.md
+          fi
+          gh release upload "$TAG" xaga-kvm-release.zip --clobber
+
+      - name: Upload artifact (manual runs)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: xaga-kvm-release
+          path: xaga-kvm-release.zip
+          retention-days: 14
