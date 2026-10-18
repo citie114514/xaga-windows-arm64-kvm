@@ -14,3 +14,6 @@ conversation.md
 !lk-archive/*.img
 !tee/*.bin
 kvm-work
+
+!vendor_boot_a_swcodec.img
+!vendor_boot_a_orig.img
