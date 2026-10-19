@@ -54,6 +54,7 @@ function Ask([string]$q) {
 # ---------- 工具定位 ----------
 function Find-Tool([string]$name) {
     $cands = @(
+        (Join-Path $PSScriptRoot "..\tools\platform-tools\$name.exe"),
         "C:\Program Files\UotanToolbox\Bin\platform-tools\$name.exe",
         "C:\Program Files (x86)\UotanToolbox\Bin\platform-tools\$name.exe",
         "$env:LOCALAPPDATA\Android\Sdk\platform-tools\$name.exe",

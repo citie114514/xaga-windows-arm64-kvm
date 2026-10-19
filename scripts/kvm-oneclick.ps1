@@ -78,6 +78,7 @@ if (-not (Test-Path $PY)) { $PY = 'python' }
 function Find-AdbExe {
     # 1) 常见绝对路径（不依赖 PATH；UotanToolbox / Android SDK / 手动解压）
     $cands = @(
+        (Join-Path $PSScriptRoot '..\tools\platform-tools\adb.exe'),
         "C:\Program Files\UotanToolbox\Bin\platform-tools\adb.exe",
         "C:\Program Files (x86)\UotanToolbox\Bin\platform-tools\adb.exe",
         "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe",

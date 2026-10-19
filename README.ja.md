@@ -197,8 +197,9 @@ bash tee/verify.sh <serial>        # デバイスを指定
 `xaga-kvm-release-*.zip` を取得して解凍し、**`start-kvm.bat`** をダブルクリック
 （または `cd scripts; .\run-oneclick.ps1`）。
 
-必要なツールはすべて同梱（パッチツール、署名ツール、完成品 tee、vendor_boot、対応 lk、profiles）で、
-**リポジトリの clone は不要**です。スクリプトは構成検証 → Python 確認 → 初回に venv 作成 →
+必要なツールはすべて同梱（パッチツール、署名ツール、完成品 tee、vendor_boot、対応 lk、profiles、
+さらに **adb/fastboot**）で、**リポジトリの clone は不要、adb の事前インストールも不要**です。
+システムの adb を優先し、無ければ同梱の `tools/platform-tools/` を使います。スクリプトは構成検証 → Python 確認 → 初回に venv 作成 →
 上流パッチ適用 → 6 パーティションのバックアップ → dump → NoGZ ビルド → 署名（2× VALID）→
 トリム → tee_a 書き込み → 読み戻し検証 → vendor_boot の提案、まで自動で行います。
 

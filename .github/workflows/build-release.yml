@@ -34,6 +34,17 @@ jobs:
       - name: Patch upstream tools (idempotent)
         run: python scripts/fix-upstream.py --tee-fix tools/mtk-mod-tee-nogz --proj .
 
+      - name: Fetch platform-tools (adb/fastboot)
+        run: |
+          set -e
+          curl -sSL -o /tmp/pt.zip https://dl.google.com/android/repository/platform-tools-latest-windows.zip
+          unzip -q /tmp/pt.zip -d /tmp/pt
+          mkdir -p tools/platform-tools
+          for f in adb.exe fastboot.exe AdbWinApi.dll AdbWinUsbApi.dll libwinpthread-1.dll NOTICE.txt source.properties; do
+            cp -f "/tmp/pt/platform-tools/$f" tools/platform-tools/ 2>/dev/null || true
+          done
+          ls -lh tools/platform-tools
+
       - name: Assemble bundle
         run: |
           set -e

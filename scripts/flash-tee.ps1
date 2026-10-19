@@ -54,6 +54,7 @@ function Ask([string]$q) {
 function Find-Tool([string]$name) {
     # 1) 已知的绝对路径优先（最可靠，不依赖 PATH/Get-Command 的不确定行为）
     $cands = @(
+        (Join-Path $PSScriptRoot "..\tools\platform-tools\$name.exe"),
         "C:\Program Files\UotanToolbox\Bin\platform-tools\$name.exe",
         "C:\Program Files (x86)\UotanToolbox\Bin\platform-tools\$name.exe",
         "$env:LOCALAPPDATA\Android\Sdk\platform-tools\$name.exe",

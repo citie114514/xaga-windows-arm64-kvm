@@ -75,7 +75,8 @@ firmware running at EL2 in the device's `tee` partition. That requires:
 
 - ✅ **Unlocked bootloader**
 - ✅ **Root** (KernelSU / Magisk, with `adb shell` granted root)
-- ✅ **adb** and **Python 3.10+** on your PC
+- ✅ **adb** and **Python 3.10+** on your PC (the release bundle already ships adb;
+  if you install platform-tools yourself, add its folder to **PATH** or the scripts won't find adb)
 
 > **No root means no KVM.** The "no-root VM" guides you find online use
 > **TCG (pure software emulation)** — roughly **1/10 to 1/50** the speed of KVM.
@@ -197,8 +198,9 @@ patched / you need to build your own**.
 Grab `xaga-kvm-release-*.zip` from [Releases](https://github.com/citie114514/xaga-windows-arm64-kvm/releases/latest),
 extract it, then double-click **`start-kvm.bat`** (or run `cd scripts; .\run-oneclick.ps1`).
 
-Every tool is bundled (patch tool, signing tool, prebuilt tee, vendor_boot, paired lk, profiles) —
-**no repo cloning needed**. The script validates the bundle, checks Python, creates a venv on first run,
+Every tool is bundled (patch tool, signing tool, prebuilt tee, vendor_boot, paired lk, profiles,
+plus **adb/fastboot**) — **no repo cloning needed, and no pre-installed adb required**.
+The scripts prefer your system adb and fall back to `tools/platform-tools/` inside the bundle. The script validates the bundle, checks Python, creates a venv on first run,
 applies the upstream patch, then backs up six partitions → dumps → builds NoGZ → signs (2× VALID) →
 trims → flashes tee_a → verifies by readback → offers the vendor_boot patch.
 

@@ -61,6 +61,19 @@ function Find-Tool([string]$name) {
 
 Title 'XAGA KVM 一键开 KVM —— 发行版入口'
 
+# ---------- [0] adb：优先系统，找不到就用包里自带的 ----------
+$bundledPt = Join-Path $Root 'tools\platform-tools'
+$sysAdb = (Find-Tool 'adb')
+if ($sysAdb) {
+    Ok "adb（系统）: $sysAdb"
+} elseif (Test-Path (Join-Path $bundledPt 'adb.exe')) {
+    # 注入 PATH，让后续脚本（kvm-oneclick / flash-vendor-boot）也能找到
+    $env:PATH = "$bundledPt;$env:PATH"
+    Ok "adb（发行版自带）: $(Join-Path $bundledPt 'adb.exe')"
+} else {
+    Die '找不到 adb，包里也没有 platform-tools。请安装 platform-tools 并把 adb 加入 PATH。'
+}
+
 # ---------- [1] 校验发行版结构 ----------
 Step '校验发行版结构'
 foreach ($need in @(

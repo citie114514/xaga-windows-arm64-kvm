@@ -23,6 +23,7 @@ No repo cloning needed — one script does everything automatically.
 - Bootloader 已解锁（`ro.boot.flash.locked=0`）
 - 已 root（KernelSU / Magisk），adb shell 有 root 权限
 - PC 装了 Python 3.10+（勾选 Add to PATH）
+- adb：**包内已自带**（`tools/platform-tools/`），系统没装也能用；自己装的话记得加入 PATH
 - 手机已开启 USB 调试，用 USB 线连接（无线 adb 刷分区不推荐）
 - 数据已备份（本项目强制备份固件分区，但你的数据自己负责）
 
@@ -79,6 +80,7 @@ cd <解压目录>\scripts
 - Bootloader unlocked (`ro.boot.flash.locked=0`)
 - Rooted (KernelSU / Magisk), adb shell has root
 - Python 3.10+ on the PC (tick "Add to PATH")
+- adb: **bundled in this archive** (`tools/platform-tools/`), so a system install is optional; if you do install platform-tools, add it to PATH
 - USB debugging enabled; use a USB cable (wireless adb for flashing not recommended)
 - Data backed up (this project backs up firmware partitions, but your data is your responsibility)
 
@@ -135,6 +137,7 @@ Useful flags:
 - Bootloader がアンロック済み（`ro.boot.flash.locked=0`）
 - root 済み（KernelSU / Magisk）、adb shell が root 権限を持つ
 - PC に Python 3.10+（「Add to PATH」にチェック）
+- adb：**同梱済み**（`tools/platform-tools/`）なので無くても動きます。自分で入れる場合は PATH に追加
 - USB デバッグ有効、USB ケーブル接続（ワイヤレス adb での書き込みは非推奨）
 - データのバックアップ（本プロジェクトはファームウェア領域をバックアップしますが、データの責任は自己責任です）
 
@@ -191,6 +194,7 @@ cd <解凍先>\scripts
 - Загрузчик разблокирован (`ro.boot.flash.locked=0`)
 - Root (KernelSU / Magisk), adb shell имеет root
 - Python 3.10+ на ПК (отметить «Add to PATH»)
+- adb: **уже в комплекте** (`tools/platform-tools/`), ставить отдельно не обязательно; если ставите — добавьте в PATH
 - Включена отладка по USB, подключение по кабелю (беспроводной adb для записи не рекомендуется)
 - Данные сохранены (проект резервирует разделы прошивки, но ваши данные — ваша ответственность)
 

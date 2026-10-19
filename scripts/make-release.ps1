@@ -25,6 +25,8 @@ $Stage = Join-Path $env:TEMP ('xaga-release-' + [guid]::NewGuid().ToString('N').
 $PkgRoot = Join-Path $Stage 'xaga-kvm'
 
 function Step([string]$t) { Write-Host ''; Write-Host "==> $t" -ForegroundColor Yellow }
+function Ok  ([string]$t) { Write-Host "  [OK]   $t" -ForegroundColor Green }
+function Info([string]$t) { Write-Host "  [..]   $t" }
 
 # ---------- 干净起见清掉旧 dist zip ----------
 New-Item -ItemType Directory -Force -Path $Dist | Out-Null
@@ -77,7 +79,37 @@ if (Test-Path $fix) {
     Copy-Item (Join-Path $Root 'tools') $toolsOut -Recurse -ErrorAction SilentlyContinue
 }
 
-# ---------- [3] 打包 ----------
+# ---------- [3] 准备 adb（platform-tools） ----------
+Step '准备 adb（优先用本机已有 platform-tools，否则下载）'
+$ptOut = Join-Path $toolsOut 'platform-tools'
+New-Item -ItemType Directory -Force -Path $ptOut | Out-Null
+$ptCands = @(
+    (Join-Path $Root 'tools-src\platform-tools'),
+    (Join-Path $env:LOCALAPPDATA 'Android\Sdk\platform-tools'),
+    'C:\Program Files\UotanToolbox\Bin\platform-tools',
+    'C:\platform-tools'
+)
+$ptSrc = $null
+foreach ($c in $ptCands) { if ($c -and (Test-Path (Join-Path $c 'adb.exe'))) { $ptSrc = $c; break } }
+if (-not $ptSrc) {
+    $ptSrc = Join-Path $Root 'tools-src\platform-tools'
+    if (-not (Test-Path (Join-Path $ptSrc 'adb.exe'))) {
+        $zip = Join-Path $env:TEMP 'platform-tools.zip'
+        Info "下载 platform-tools ..."
+        Invoke-WebRequest -Uri 'https://dl.google.com/android/repository/platform-tools-latest-windows.zip' -OutFile $zip -Proxy 'http://127.0.0.1:10808' -TimeoutSec 300
+        Expand-Archive -Path $zip -DestinationPath (Split-Path $ptSrc -Parent) -Force
+        Remove-Item $zip -Force -ErrorAction SilentlyContinue
+    }
+}
+if (-not (Test-Path (Join-Path $ptSrc 'adb.exe'))) { throw "拿不到 platform-tools（缺少 adb.exe）: $ptSrc" }
+# 只带必需的几个文件（约 11 MB），不携 etc1tool/sqlite3 等无关工具
+foreach ($f in @('adb.exe','fastboot.exe','AdbWinApi.dll','AdbWinUsbApi.dll','libwinpthread-1.dll','NOTICE.txt','source.properties')) {
+    $srcFile = Join-Path $ptSrc $f
+    if (Test-Path $srcFile) { Copy-Item $srcFile (Join-Path $ptOut $f) -Force }
+}
+Ok "adb 已打包: $([math]::Round((Get-ChildItem $ptOut -File | Measure-Object Length -Sum).Sum/1MB,1)) MB（来源：$ptSrc）"
+
+# ---------- [4] 打包 ----------
 Step '打包 zip'
 $ver = Get-Date -Format 'yyyyMMdd'
 $zip = Join-Path $Dist "xaga-kvm-release-$ver.zip"

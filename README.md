@@ -61,7 +61,8 @@
 
 - ✅ **Bootloader 已解锁**
 - ✅ **已 Root**（KernelSU / Magisk，且给 adb shell 授权）
-- ✅ PC 上有 **adb** 和 **Python 3.10+**
+- ✅ PC 上有 **adb** 和 **Python 3.10+**（发行版已自带 adb，系统没装也能用；
+  自己装的话记得把 platform-tools 目录**加入环境变量 PATH**，否则脚本找不到 adb）
 
 > **没有 Root 就没有 KVM。** 网上那种"免 Root 跑虚拟机"的方案用的是 **TCG（纯软件模拟）** ——
 > 速度大概是 KVM 的 **1/10 ~ 1/50**，装个系统要几小时，日常根本没法用。
@@ -217,8 +218,9 @@ bash tee/verify.sh <serial>        # 指定设备
 
 - 双击 **`start-kvm.bat`**（或手动 `cd scripts; .\run-oneclick.ps1`）
 
-包内已含全部工具（补丁工具、签名工具、成品 tee、vendor_boot、配对 lk、profiles），
-**不需要 clone 任何仓库**。脚本会自动：校验结构 → 检查 Python → 首次建 venv 装依赖
+包内已含全部工具（补丁工具、签名工具、成品 tee、vendor_boot、配对 lk、profiles，
+以及 **adb/fastboot**），**不需要 clone 任何仓库、也不要求系统预先装好 adb**。
+脚本优先用系统 PATH 里的 adb，找不到就用包内 `tools/platform-tools/` 里的那份。脚本会自动：校验结构 → 检查 Python → 首次建 venv 装依赖
 → 确保上游补丁 → 备份六分区 → dump → 构建 NoGZ → 签名（2× VALID）→ 裁剪 → 刷入 tee_a
 → 回读校验 → 提示刷 vendor_boot。
 
