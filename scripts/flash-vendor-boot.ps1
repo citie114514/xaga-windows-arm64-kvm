@@ -20,6 +20,7 @@
 param(
     [string] $Patch,                                  # 补丁镜像（不给则自动匹配/自动构建）
     [string] $Serial,                                 # 多设备时指定
+    [string] $AdbPath = '',
     [string] $BackupDir = '',                         # 备份目录（默认 <repo>\vb-backup-<时间>）
     [switch] $DryRun,                                 # 只做到校验，不刷入
     [switch] $Yes                                     # 全部自动确认
@@ -54,7 +55,6 @@ function Ask([string]$q) {
 # ---------- 工具定位 ----------
 function Find-Tool([string]$name) {
     $cands = @(
-        (Join-Path $PSScriptRoot "..\tools\platform-tools\$name.exe"),
         "C:\Program Files\UotanToolbox\Bin\platform-tools\$name.exe",
         "C:\Program Files (x86)\UotanToolbox\Bin\platform-tools\$name.exe",
         "$env:LOCALAPPDATA\Android\Sdk\platform-tools\$name.exe",
@@ -70,6 +70,14 @@ function Find-Tool([string]$name) {
     }
     $c = Get-Command "$name.exe" -CommandType Application -ErrorAction SilentlyContinue
     if ($c -and $c.Source) { return $c.Source }
+
+    # 4) 最后兜底：包内自带（发行版 tools/platform-tools，或把 platform-tools 放在脚本旁边）
+    foreach ($p in @(
+        (Join-Path $PSScriptRoot "$name.exe"),
+        (Join-Path $PSScriptRoot "platform-tools\$name.exe"),
+        (Join-Path $PSScriptRoot "..\platform-tools\$name.exe"),
+        (Join-Path $PSScriptRoot "..\tools\platform-tools\$name.exe")
+    )) { if (Test-Path $p) { return $p } }
     return $null
 }
 
@@ -102,7 +110,7 @@ Title 'vendor_boot 软编回退补丁 —— 让 KVM 与编解码共存'
 
 # ---------- [1] 环境检查 ----------
 Step '环境检查'
-$script:AdbExe = Find-Tool 'adb'
+if ($AdbPath -and (Test-Path $AdbPath)) { $script:AdbExe = $AdbPath } else { $script:AdbExe = Find-Tool 'adb' }
 if (-not $script:AdbExe) { Die '找不到 adb.exe —— 请装 platform-tools 或放在常见路径' }
 Ok "adb: $script:AdbExe"
 

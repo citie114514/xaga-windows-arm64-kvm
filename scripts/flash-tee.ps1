@@ -16,6 +16,7 @@ param(
     [string] $Patch,                              # 补丁镜像（不给则自动挑）
     [string] $RepoRoot = '',                      # 仓库根（仓库会自动推断）
     [string] $Serial,
+    [string] $AdbPath = '',
     [string] $BackupDir = '',
     [switch] $SkipFastboot,
     [switch] $Yes
@@ -54,7 +55,6 @@ function Ask([string]$q) {
 function Find-Tool([string]$name) {
     # 1) 已知的绝对路径优先（最可靠，不依赖 PATH/Get-Command 的不确定行为）
     $cands = @(
-        (Join-Path $PSScriptRoot "..\tools\platform-tools\$name.exe"),
         "C:\Program Files\UotanToolbox\Bin\platform-tools\$name.exe",
         "C:\Program Files (x86)\UotanToolbox\Bin\platform-tools\$name.exe",
         "$env:LOCALAPPDATA\Android\Sdk\platform-tools\$name.exe",
@@ -75,6 +75,10 @@ function Find-Tool([string]$name) {
     # 3) 最后才试 Get-Command
     $c = Get-Command "$name.exe" -CommandType Application -ErrorAction SilentlyContinue
     if ($c -and $c.Source) { return $c.Source }
+
+    # 4) 最后兜底：包内自带（发行版 tools/platform-tools，或把 platform-tools 放在脚本旁边）
+    foreach ($p in @(
+    )) { if (Test-Path $p) { return $p } }
 
     return $null
 }
@@ -106,7 +110,7 @@ Title 'NoGZ tee 刷入工具 —— 开 KVM'
 # ---------- [1] 工具与环境 ---------------------------------------------------
 Step '环境检查'
 
-$script:AdbExe = Find-Tool 'adb'
+if ($AdbPath -and (Test-Path $AdbPath)) { $script:AdbExe = $AdbPath } else { $script:AdbExe = Find-Tool 'adb' }
 if (-not $script:AdbExe) {
     Warn ('Get-Command adb = ' + $(if (Get-Command adb -ErrorAction SilentlyContinue) { (Get-Command adb).Source } else { '(无)' }))
     Warn ('PATH 里 adb 计数 = ' + @(Get-Command adb -All -ErrorAction SilentlyContinue).Count)

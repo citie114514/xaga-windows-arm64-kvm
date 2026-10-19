@@ -23,7 +23,9 @@ No repo cloning needed — one script does everything automatically.
 - Bootloader 已解锁（`ro.boot.flash.locked=0`）
 - 已 root（KernelSU / Magisk），adb shell 有 root 权限
 - PC 装了 Python 3.10+（勾选 Add to PATH）
-- adb：**包内已自带**（`tools/platform-tools/`），系统没装也能用；自己装的话记得加入 PATH
+- adb：**包内已自带**（`tools/platform-tools/`），系统没装也能用。
+  查找顺序：系统的 adb（常见路径 + PATH）优先，找不到才用包内那份；
+  想用自己下载的，把 `platform-tools` 目录放到 `scripts` 里或发行版根目录也行
 - 手机已开启 USB 调试，用 USB 线连接（无线 adb 刷分区不推荐）
 - 数据已备份（本项目强制备份固件分区，但你的数据自己负责）
 
@@ -80,7 +82,9 @@ cd <解压目录>\scripts
 - Bootloader unlocked (`ro.boot.flash.locked=0`)
 - Rooted (KernelSU / Magisk), adb shell has root
 - Python 3.10+ on the PC (tick "Add to PATH")
-- adb: **bundled in this archive** (`tools/platform-tools/`), so a system install is optional; if you do install platform-tools, add it to PATH
+- adb: **bundled in this archive** (`tools/platform-tools/`), so a system install is optional.
+  Lookup order: your system adb (known paths + PATH) first, bundled copy as the fallback;
+  you can also drop your own `platform-tools` folder into `scripts/` or the bundle root
 - USB debugging enabled; use a USB cable (wireless adb for flashing not recommended)
 - Data backed up (this project backs up firmware partitions, but your data is your responsibility)
 

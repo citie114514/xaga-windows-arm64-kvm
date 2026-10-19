@@ -44,6 +44,7 @@
 [CmdletBinding()]
 param(
     [string] $Profile    = 'xaga',
+    [string] $AdbPath    = '',   # 显式指定 adb.exe（发行版入口会传包内路径）
     [string] $ProjRepo   = '',
     [Parameter(Mandatory=$true)][string] $TeeFixRepo,
     [Parameter(Mandatory=$true)][string] $PwnageDir,
@@ -78,7 +79,6 @@ if (-not (Test-Path $PY)) { $PY = 'python' }
 function Find-AdbExe {
     # 1) 常见绝对路径（不依赖 PATH；UotanToolbox / Android SDK / 手动解压）
     $cands = @(
-        (Join-Path $PSScriptRoot '..\tools\platform-tools\adb.exe'),
         "C:\Program Files\UotanToolbox\Bin\platform-tools\adb.exe",
         "C:\Program Files (x86)\UotanToolbox\Bin\platform-tools\adb.exe",
         "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe",
@@ -96,12 +96,20 @@ function Find-AdbExe {
     # 3) 最后才试 Get-Command
     $c = Get-Command adb.exe -CommandType Application -ErrorAction SilentlyContinue
     if ($c -and $c.Source) { return $c.Source }
+    # 4) 最后兜底：包内自带（发行版 tools/platform-tools，或把 platform-tools 放在脚本旁边）
+    foreach ($p in @(
+        (Join-Path $PSScriptRoot 'adb.exe'),
+        (Join-Path $PSScriptRoot 'platform-tools\adb.exe'),
+        (Join-Path $PSScriptRoot '..\platform-tools\adb.exe'),
+        (Join-Path $PSScriptRoot '..\tools\platform-tools\adb.exe')
+    )) { if (Test-Path $p) { return $p } }
     return $null
 }
 
 # ⚠️ 函数名不能叫 Adb：PowerShell 里函数会遮蔽外部 adb.exe，
 #    导致 `& adb @Args` 递归调到自己 → CallDepthOverflow（PS5 实测）。
-$script:AdbExe = Find-AdbExe
+if ($AdbPath -and (Test-Path $AdbPath)) { $script:AdbExe = $AdbPath }
+else { $script:AdbExe = Find-AdbExe }
 function Invoke-Adb { param([Parameter(ValueFromRemainingArguments=$true)]$AdbArgs)
     $old = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
     $call = @()

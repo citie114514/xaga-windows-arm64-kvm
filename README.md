@@ -220,7 +220,8 @@ bash tee/verify.sh <serial>        # 指定设备
 
 包内已含全部工具（补丁工具、签名工具、成品 tee、vendor_boot、配对 lk、profiles，
 以及 **adb/fastboot**），**不需要 clone 任何仓库、也不要求系统预先装好 adb**。
-脚本优先用系统 PATH 里的 adb，找不到就用包内 `tools/platform-tools/` 里的那份。脚本会自动：校验结构 → 检查 Python → 首次建 venv 装依赖
+查找顺序是：系统已安装的 adb（常见路径 + PATH）→ 都没有才用包里自带的那份。
+如果你的 adb 放在别处，把整个 `platform-tools` 目录放到 `scripts` 里面或发行版根目录，也会被识别。脚本会自动：校验结构 → 检查 Python → 首次建 venv 装依赖
 → 确保上游补丁 → 备份六分区 → dump → 构建 NoGZ → 签名（2× VALID）→ 裁剪 → 刷入 tee_a
 → 回读校验 → 提示刷 vendor_boot。
 

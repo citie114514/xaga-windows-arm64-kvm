@@ -56,22 +56,28 @@ function Find-Tool([string]$name) {
     }
     $c = Get-Command "$name.exe" -CommandType Application -ErrorAction SilentlyContinue
     if ($c -and $c.Source) { return $c.Source }
+
+    # 4) 最后兜底：包内自带（发行版 tools/platform-tools，或把 platform-tools 放在脚本旁边）
+    foreach ($p in @(
+        (Join-Path $PSScriptRoot "$name.exe"),
+        (Join-Path $PSScriptRoot "platform-tools\$name.exe"),
+        (Join-Path $PSScriptRoot "..\platform-tools\$name.exe"),
+        (Join-Path $PSScriptRoot "..\tools\platform-tools\$name.exe")
+    )) { if (Test-Path $p) { return $p } }
     return $null
 }
 
 Title 'XAGA KVM 一键开 KVM —— 发行版入口'
 
-# ---------- [0] adb：优先系统，找不到就用包里自带的 ----------
-$bundledPt = Join-Path $Root 'tools\platform-tools'
-$sysAdb = (Find-Tool 'adb')
-if ($sysAdb) {
-    Ok "adb（系统）: $sysAdb"
-} elseif (Test-Path (Join-Path $bundledPt 'adb.exe')) {
-    # 注入 PATH，让后续脚本（kvm-oneclick / flash-vendor-boot）也能找到
-    $env:PATH = "$bundledPt;$env:PATH"
-    Ok "adb（发行版自带）: $(Join-Path $bundledPt 'adb.exe')"
+# ---------- [0] adb：优先系统，找不到就用包内自带的（不注入 PATH） ----------
+# 候选顺序与各脚本一致：脚本目录 → 脚本目录/platform-tools → 上级 platform-tools
+#                     → 上级 tools/platform-tools → 常见安装位置 → PATH
+$adbPath = Find-Tool 'adb'
+if ($adbPath) {
+    $isBundled = $adbPath -like (Join-Path $Root '*')
+    if ($isBundled) { Ok "adb（包内自带）: $adbPath" } else { Ok "adb（系统）: $adbPath" }
 } else {
-    Die '找不到 adb，包里也没有 platform-tools。请安装 platform-tools 并把 adb 加入 PATH。'
+    Die '找不到 adb：包里没有 platform-tools，系统也没装。请把 platform-tools 放到 scripts 同级目录，或安装后加入 PATH。'
 }
 
 # ---------- [1] 校验发行版结构 ----------
@@ -143,6 +149,7 @@ $oneclickArgs = @{
     PwnageDir  = $PwnageDir
     ProjRepo   = $Root
     WorkDir    = (Join-Path $Root 'kvm-work')
+    AdbPath    = $adbPath
 }
 if ($DryRun) { $oneclickArgs.DryRun = $true }
 if ($Yes)    { $oneclickArgs.Yes    = $true }
@@ -156,7 +163,7 @@ if (-not $SkipVendorBoot) {
     Write-Host ''
     Write-Host '  想让录屏 / 串流 / QQ 图片也恢复（KVM 与编解码共存），并让开机第二屏等待消失？' -ForegroundColor Cyan
     Write-Host '  下一步刷 vendor_boot 软编回退补丁：' -ForegroundColor Cyan
-    $vbArgs = @{}
+    $vbArgs = @{ AdbPath = $adbPath }
     if ($DryRun) { $vbArgs.DryRun = $true }
     if ($Yes)    { $vbArgs.Yes    = $true }
     if ($DryRun) {
