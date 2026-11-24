@@ -1,6 +1,6 @@
 # vendor_boot 软编回退补丁 —— 让 KVM 和编解码功能共存 ✅（已实机验证）
 
-[**中文**](07-vendor-boot-swcodec.md)  （English / 日本語 / Русский 版待补）
+[**中文**](07-vendor-boot-swcodec.md)  （English 版待补）
 
 > **状态变更记录**：
 > - 初版方案 → 曾因实测崩溃被撤回（标注存疑/不推荐）

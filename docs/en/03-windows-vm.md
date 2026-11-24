@@ -1,6 +1,6 @@
 # Windows 11 ARM64 disk — how to build it
 
-**English** | [中文](../03-windows-vm.md) | [日本語](../ja/03-windows-vm.md) | [Русский](../ru/03-windows-vm.md)
+**English** | [中文](../03-windows-vm.md)
 
 > Goal: without installing a hypervisor and without running the installer inside a VM, produce a
 > **bootable VHDX with drivers injected and TPM checks bypassed** directly on the PC.

@@ -1,18 +1,12 @@
-# 一键开 KVM —— 发行版（四语）
+# 一键开 KVM —— 发行版（中英双语）
 
-**中文 / English / 日本語 / Русский**
+**中文 / English**
 
 这个压缩包把所有工具都打包好了（补丁工具、签名工具、成品 tee、vendor_boot、脚本、配对 lk、profiles），
 解压后**不需要 clone 任何仓库**，跑一个脚本就能全自动完成。
 
 This zip bundles every tool you need (patch tool, signing tool, prebuilt tee, vendor_boot, scripts, paired lk, profiles).
 No repo cloning needed — one script does everything automatically.
-
-この ZIP には必要なツールがすべて同梱されています（パッチツール、署名ツール、完成品 tee、vendor_boot、スクリプト、対応 lk、profiles）。
-リポジトリの clone は不要で、1 つのスクリプトで全自動で完了します。
-
-Этот архив содержит все необходимые инструменты (инструмент патча, инструмент подписи, готовые tee, vendor_boot, скрипты, парный lk, profiles).
-Клонирование репозиториев не требуется — один скрипт делает всё автоматически.
 
 ---
 
@@ -132,116 +126,4 @@ Useful flags:
 - **lk mismatch** (after Android 16 OTA): the script auto-finds the paired backup in `lk-archive/`
 - More: official repo [xaga-windows-arm64-kvm](https://github.com/citie114514/xaga-windows-arm64-kvm) docs/
 
----
 
-## 日本語
-
-### 前提（必須）
-
-- Bootloader がアンロック済み（`ro.boot.flash.locked=0`）
-- root 済み（KernelSU / Magisk）、adb shell が root 権限を持つ
-- PC に Python 3.10+（「Add to PATH」にチェック）
-- adb：**同梱済み**（`tools/platform-tools/`）なので無くても動きます。自分で入れる場合は PATH に追加
-- USB デバッグ有効、USB ケーブル接続（ワイヤレス adb での書き込みは非推奨）
-- データのバックアップ（本プロジェクトはファームウェア領域をバックアップしますが、データの責任は自己責任です）
-
-### 使い方
-
-**`start-kvm.bat`** をダブルクリック、または手動で：
-
-```powershell
-cd <解凍先>\scripts
-.\run-oneclick.ps1
-```
-
-自動で行うこと：
-
-1. 配布構成の検証（ファイル欠落を検出）
-2. Python の確認
-3. 初回に venv 作成と依存インストール（数分、一度だけ）
-4. 上流パッチ適用の確認（冪等）
-5. kvm-oneclick 実行：6 パーティションのバックアップ → dump → NoGZ ビルド → 署名（2× VALID）→ トリム → tee_a 書き込み → 読み戻し検証
-6. vendor_boot の書き込みを提案（録画・ストリーミング復活 + 2 画面目の待ちが消える）
-
-オプション：
-
-```powershell
-.\run-oneclick.ps1 -DryRun          # ビルドと検証のみ、書き込まない
-.\run-oneclick.ps1 -Yes             # 全自動確認（録画用）
-.\run-oneclick.ps1 -SkipVendorBoot  # tee 後に vendor_boot を促さない
-```
-
-### 再起動後
-
-- 2 画面目に 1〜2 分停止：**正常**。3 分待ち、fastboot に入らないこと
-- `/dev/kvm`（10, 232）が出たら成功
-- 録画・ストリーミングが必要なら、指示に従って vendor_boot を書き込む（元に戻すと起動が遅くなるのは正常）
-
-### ロールバック
-
-- バックアップ：`<解凍先>\vb-backup-<日時>\`、`<解凍先>\kvm-work\backup\`
-- `fastboot flash tee_a <バックアップ>` が実測で有効。tee_a だけを触る
-
-### よくある問題
-
-- **Python が見つからない**：Python 3.10+ を「Add to PATH」付きでインストール
-- **ファイル不足**：zip が不完全、または Releases のフルバンドル以外を使用
-- **lk 不一致**（Android 16 に更新した端末）：`lk-archive/` のペアバックアップを自動検索
-- 詳細：公式リポジトリ [xaga-windows-arm64-kvm](https://github.com/citie114514/xaga-windows-arm64-kvm) の docs/
-
----
-
-## Русский
-
-### Обязательные требования
-
-- Загрузчик разблокирован (`ro.boot.flash.locked=0`)
-- Root (KernelSU / Magisk), adb shell имеет root
-- Python 3.10+ на ПК (отметить «Add to PATH»)
-- adb: **уже в комплекте** (`tools/platform-tools/`), ставить отдельно не обязательно; если ставите — добавьте в PATH
-- Включена отладка по USB, подключение по кабелю (беспроводной adb для записи не рекомендуется)
-- Данные сохранены (проект резервирует разделы прошивки, но ваши данные — ваша ответственность)
-
-### Использование
-
-Двойной клик по **`start-kvm.bat`**, либо вручную:
-
-```powershell
-cd <папка распаковки>\scripts
-.\run-oneclick.ps1
-```
-
-Скрипт автоматически:
-
-1. Проверяет комплект (сообщит о недостающих файлах)
-2. Проверяет Python
-3. При первом запуске создаёт venv и ставит зависимости (несколько минут, один раз)
-4. Убеждается, что апстрим-патч применён (идемпотентно)
-5. Запускает kvm-oneclick: резервная копия шести разделов → dump → сборка NoGZ → подпись (2× VALID) → обрезка → запись tee_a → проверка чтением
-6. Предлагает записать vendor_boot (возвращает запись экрана/стриминг + убирает ожидание на втором экране)
-
-Параметры:
-
-```powershell
-.\run-oneclick.ps1 -DryRun          # только сборка и проверка, без записи
-.\run-oneclick.ps1 -Yes             # полное автоподтверждение (для записи экрана)
-.\run-oneclick.ps1 -SkipVendorBoot  # не предлагать vendor_boot после tee
-```
-
-### После перезагрузки
-
-- Второй экран висит 1–2 минуты: **нормально**, ждать 3 минуты, НЕ входить в fastboot
-- Успех = появился `/dev/kvm` (10, 232)
-- Нужна запись/стриминг? Запишите vendor_boot по подсказке (возврат стокового vendor_boot снова замедлит загрузку — ожидаемо)
-
-### Откат
-
-- Резервные копии: `<папка распаковки>\vb-backup-<время>\`, `<папка распаковки>\kvm-work\backup\`
-- `fastboot flash tee_a <бэкап>` — проверенный способ спасти; затрагивается только tee_a
-
-### Частые вопросы
-
-- **Python не найден**: установите Python 3.10+ с «Add to PATH»
-- **Недостающие файлы**: архив неполный, или использован не полный комплект из Releases
-- **lk не совпадает** (после OTA на Android 16): скрипт сам находит парный бэкап в `lk-archive/`
-- Подробнее: официальный репозиторий [xaga-windows-arm64-kvm](https://github.com/citie114514/xaga-windows-arm64-kvm), docs/

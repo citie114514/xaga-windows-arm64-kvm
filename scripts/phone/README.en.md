@@ -1,6 +1,6 @@
 # On-device scripts
 
-**English** | [中文](README.md) | [日本語](README.ja.md) | [Русский](README.ru.md)
+**English** | [中文](README.md)
 
 Push these to `/data/local/tmp/` on the phone and run them there. **All of them require root.**
 

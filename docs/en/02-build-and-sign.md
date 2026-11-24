@@ -1,6 +1,6 @@
 # Build and sign — the steps explained
 
-**English** | [中文](../02-build-and-sign.md) | [日本語](../ja/02-build-and-sign.md) | [Русский](../ru/02-build-and-sign.md)
+**English** | [中文](../02-build-and-sign.md)
 
 This page explains: **what the NoGZ patch actually changes**, **how to build it**, **how to sign it**
 and **how to verify it**.

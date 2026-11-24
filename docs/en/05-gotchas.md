@@ -1,6 +1,6 @@
 # Gotcha list
 
-**English** | [中文](../05-gotchas.md) | [日本語](../ja/05-gotchas.md) | [Русский](../ru/05-gotchas.md)
+**English** | [中文](../05-gotchas.md)
 
 Every trap here was **actually hit** on a Redmi Note 11T Pro+. Ordered by how much damage
 they do.

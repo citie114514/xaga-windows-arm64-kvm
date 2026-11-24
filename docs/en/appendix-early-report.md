@@ -1,6 +1,6 @@
 # xagapro (Redmi Note 11T Pro+) — feasibility report for MTK NoGZ → KVM
 
-**English** | [中文](../appendix-early-report.md) | [日本語](../ja/appendix-early-report.md) | [Русский](../ru/appendix-early-report.md)
+**English** | [中文](../appendix-early-report.md)
 
 Date: 2026-10-04
 Device: `192.168.31.75:33445` (device 1, **nothing flashed**, read-only throughout)

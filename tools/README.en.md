@@ -1,6 +1,6 @@
 # Tools for locating profiles for new firmware
 
-**English** | [中文](README.md) | [日本語](README.ja.md) | [Русский](README.ru.md)
+**English** | [中文](README.md)
 
 For a device that already has a profile but a different firmware batch, these **re-locate the
 offsets**. The core idea: **don't guess by shifting bytes around — search the new binary using

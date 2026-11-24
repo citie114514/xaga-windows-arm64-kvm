@@ -1,6 +1,6 @@
 # Usage
 
-**English** | [中文](../04-usage.md) | [日本語](../ja/04-usage.md) | [Русский](../ru/04-usage.md)
+**English** | [中文](../04-usage.md)
 
 This page covers: **how to launch**, **what every QEMU flag means**, **how to see the screen**,
 **how to get networking**, and **how to tune performance**.

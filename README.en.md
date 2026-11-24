@@ -1,6 +1,6 @@
 # Windows 11 ARM64 on an Android Phone — with Real KVM Hardware Acceleration
 
-[中文](README.md) | **English** | [日本語](README.ja.md) | [Русский](README.ru.md)
+[中文](README.md) | **English**
 
 > Verified on Redmi Note 11T Pro+ / **Redmi K50i** (MT6895 / Dimensity 8100).
 > The **Redmi Note 11T Pro / POCO X4 GT** (codename `xaga`) in the same SoC family works on exactly the
@@ -333,8 +333,6 @@ that is the least painful path.
 | Path | Contents |
 |---|---|
 | [README.md](README.md) | Chinese version of this README |
-| [README.ja.md](README.ja.md) | Japanese version of this README |
-| [README.ru.md](README.ru.md) | Russian version of this README |
 | [docs/en/01-enable-kvm.md](docs/en/01-enable-kvm.md) | **Full KVM enablement**: the principle, verification-chain analysis, flashing and validation |
 | [docs/en/02-build-and-sign.md](docs/en/02-build-and-sign.md) | **Build & signing walkthrough**: what the NoGZ patch changes, how pwnage signs, handling oversized images |
 | [docs/en/03-windows-vm.md](docs/en/03-windows-vm.md) | The Windows 11 ARM64 disk: applying the image, writing boot files, injecting drivers |

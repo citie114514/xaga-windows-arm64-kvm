@@ -1,6 +1,6 @@
 # Going further: mainline Linux + KDE
 
-**English** | [中文](../06-mainline.md) | [日本語](../ja/06-mainline.md) | [Русский](../ru/06-mainline.md)
+**English** | [中文](../06-mainline.md)
 
 > For people who aren't satisfied with running a VM inside Android and want to turn the phone
 > straight into a Linux computer — like in that [kde-yyds](https://space.bilibili.com/2008726064)

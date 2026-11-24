@@ -1,6 +1,6 @@
 # Enabling KVM — the complete process
 
-**English** | [中文](../01-enable-kvm.md) | [日本語](../ja/01-enable-kvm.md) | [Русский](../ru/01-enable-kvm.md)
+**English** | [中文](../01-enable-kvm.md)
 
 > Goal: make `/dev/kvm` appear on Android so QEMU can use hardware acceleration (instead of TCG
 > software emulation, which is too slow to be usable).

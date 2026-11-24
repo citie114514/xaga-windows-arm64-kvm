@@ -1,6 +1,6 @@
 # preloader_raw_a.img — reverse-engineering conclusions
 
-**English** | [中文](../appendix-atf-reverse.md) | [日本語](../ja/appendix-atf-reverse.md) | [Русский](../ru/appendix-atf-reverse.md)
+**English** | [中文](../appendix-atf-reverse.md)
 
 File: `D:\Administrator\下载\preloader_raw_a.img`
 Size: 4 190 208 bytes (0x3FF000)

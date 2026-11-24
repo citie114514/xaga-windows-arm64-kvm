@@ -1,6 +1,6 @@
 # Firmware profiles
 
-**English** | [中文](README.md) | [日本語](README.ja.md) | [Русский](README.ru.md)
+**English** | [中文](README.md)
 
 `mtk-mod-tee-nogz` uses a **profile** to locate the positions inside ATF/LK that need patching.
 A profile matches its input by **full-file SHA-256**, so it works at the level of an
