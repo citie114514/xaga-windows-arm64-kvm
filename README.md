@@ -361,7 +361,6 @@ adb forward tcp:5900 tcp:5900                    # VNC 固定 5900
 | [docs/05-gotchas.md](docs/05-gotchas.md) | **坑清单**（13 条，全是我们踩过的）| （[English](docs/en/05-gotchas.md)）|
 | [docs/06-mainline.md](docs/06-mainline.md) | 进阶：换主线 Linux + KDE 的路线 （[English](docs/en/06-mainline.md)）|
 | [docs/appendix-atf-reverse.md](docs/appendix-atf-reverse.md) | **附录：preloader 逆向结论**（SBC 来自 eFuse、两段式 `[SBC]` 校验链、ATF 装载点）（[English](docs/en/appendix-atf-reverse.md)）|
-| [docs/appendix-early-report.md](docs/appendix-early-report.md) | **附录：早期可行性报告**（只读侦察、逆向出的偏移、风险）（[English](docs/en/appendix-early-report.md)）|
 | [tee/](tee/) | **成品 tee 镜像**（已签名，可直接刷）+ 适配基座对照表 |
 | [profiles/](profiles/) | 固件 profile（ATF/LK 偏移定义）|
 | [tools/](tools/) | 为新固件重新定位 profile 的逆向工具 |
